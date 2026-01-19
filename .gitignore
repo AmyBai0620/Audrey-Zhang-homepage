@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### 数据库配置文件（包含密码，不要提交到Git）###
+application-dev.properties
+src/main/resources/application-dev.properties
