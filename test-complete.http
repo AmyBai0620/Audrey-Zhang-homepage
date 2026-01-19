@@ -1,0 +1,103 @@
+### 完整测试流程
+
+### 1. 创建教授（你的母亲）
+POST http://localhost:8080/api/professors
+Content-Type: application/json
+
+{
+  "name": "张慧敏",
+  "title": "副教授",
+  "university": "贵州财经大学",
+  "department": "信息学院",
+  "researchInterests": "数据挖掘、机器学习、人工智能",
+  "email": "zhanghuimin@gufe.edu.cn",
+  "biography": "张慧敏，女，副教授，硕士生导师。长期从事数据挖掘、机器学习等领域的研究工作，主持和参与多项国家级、省部级科研项目。在国内外重要学术期刊和会议上发表论文多篇。"
+}
+
+### 2. 添加教育背景（假设教授ID为1）
+POST http://localhost:8080/api/educations
+Content-Type: application/json
+
+{
+  "professor": {"id": 1},
+  "degree": "PHD",
+  "major": "计算机科学与技术",
+  "university": "某某大学",
+  "startYear": 2005,
+  "endYear": 2009
+}
+
+### 3. 添加硕士学位
+POST http://localhost:8080/api/educations
+Content-Type: application/json
+
+{
+  "professor": {"id": 1},
+  "degree": "MASTER",
+  "major": "计算机应用技术",
+  "university": "某某大学",
+  "startYear": 2002,
+  "endYear": 2005
+}
+
+### 4. 添加论文
+POST http://localhost:8080/api/publications
+Content-Type: application/json
+
+{
+  "professor": {"id": 1},
+  "title": "基于深度学习的数据挖掘方法研究",
+  "authors": "张慧敏, 李明, 王芳",
+  "journal": "计算机学报",
+  "year": 2023,
+  "volume": "46",
+  "pages": "1234-1245",
+  "publicationType": "JOURNAL"
+}
+
+### 5. 添加研究项目
+POST http://localhost:8080/api/research-projects
+Content-Type: application/json
+
+{
+  "professor": {"id": 1},
+  "title": "大数据环境下的智能推荐系统研究",
+  "description": "本项目旨在研究大数据环境下的智能推荐算法，提高推荐系统的准确性和效率。",
+  "fundingSource": "国家自然科学基金",
+  "fundingAmount": 300000,
+  "startDate": "2022-01-01",
+  "endDate": "2024-12-31",
+  "status": "ONGOING"
+}
+
+### 6. 添加教学课程
+POST http://localhost:8080/api/teaching-courses
+Content-Type: application/json
+
+{
+  "professor": {"id": 1},
+  "courseName": "数据挖掘与分析",
+  "courseCode": "CS301",
+  "semester": "春季学期",
+  "year": 2024,
+  "credits": 3.0,
+  "description": "本课程介绍数据挖掘的基本概念、方法和应用。"
+}
+
+### 7. 添加获奖荣誉
+POST http://localhost:8080/api/awards
+Content-Type: application/json
+
+{
+  "professor": {"id": 1},
+  "title": "贵州省科技进步奖二等奖",
+  "organization": "贵州省人民政府",
+  "year": 2022,
+  "level": "PROVINCIAL",
+  "description": "在数据挖掘领域取得重要研究成果"
+}
+
+### 8. 查看完整信息
+GET http://localhost:8080/professor/1
+
+###
