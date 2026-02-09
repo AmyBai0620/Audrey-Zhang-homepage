@@ -28,6 +28,14 @@ public class ResearchProjectService {
         return researchProjectRepository.findByProfessorIdOrderByStartDateDesc(professorId);
     }
 
+    public List<ResearchProject> getResearchProjectsByProfessorId(Long professorId) {
+        return getProjectsByProfessorId(professorId);
+    }
+
+    public Optional<ResearchProject> getResearchProjectById(Long id) {
+        return getProjectById(id);
+    }
+
     public List<ResearchProject> getProjectsByProfessorIdAndStatus(Long professorId, ProjectStatus status) {
         return researchProjectRepository.findByProfessorIdAndStatus(professorId, status);
     }
@@ -38,7 +46,17 @@ public class ResearchProjectService {
     }
 
     @Transactional
+    public ResearchProject saveResearchProject(ResearchProject project) {
+        return saveProject(project);
+    }
+
+    @Transactional
     public void deleteProject(Long id) {
         researchProjectRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteResearchProject(Long id) {
+        deleteProject(id);
     }
 }

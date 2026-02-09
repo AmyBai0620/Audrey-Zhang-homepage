@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${contactInfo.id != null ? '编辑联系方式' : '添加联系方式'}">联系方式表单</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .section-title {
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- 导航 -->
+        <div class="mb-3">
+            <a th:href="@{/admin/contact-info(professorId=${professor.id})}" class="btn btn-light">
+                <i class="bi bi-arrow-left me-2"></i>
+                返回联系方式管理
+            </a>
+        </div>
+
+        <!-- 表单卡片 -->
+        <div class="form-card">
+            <h2 class="mb-4 text-center">
+                <i class="bi bi-telephone-fill me-2 text-primary"></i>
+                <span th:text="${contactInfo.id != null ? '编辑联系方式' : '添加联系方式'}">联系方式表单</span>
+            </h2>
+
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-person-circle me-2"></i>
+                <strong>教授：</strong><span th:text="${professor.name}">教授姓名</span>
+            </div>
+
+            <form th:action="@{/admin/contact-info/save}" th:object="${contactInfo}" method="post">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" name="professorId" th:value="${professor.id}" />
+
+                <!-- 办公室信息 -->
+                <h5 class="section-title">
+                    <i class="bi bi-building me-2"></i>
+                    办公室信息
+                </h5>
+
+                <div class="row">
+                    <!-- 办公室地点 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="officeLocation" class="form-label">办公室地点</label>
+                        <input type="text"
+                               class="form-control"
+                               id="officeLocation"
+                               th:field="*{officeLocation}"
+                               placeholder="例如：行政楼 A301">
+                        <div class="form-text">请输入详细的办公室位置</div>
+                    </div>
+
+                    <!-- 办公室电话 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="officePhone" class="form-label">办公室电话</label>
+                        <input type="text"
+                               class="form-control"
+                               id="officePhone"
+                               th:field="*{officePhone}"
+                               placeholder="例如：0851-88888888">
+                    </div>
+
+                    <!-- 办公时间 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="officeHours" class="form-label">办公时间</label>
+                        <input type="text"
+                               class="form-control"
+                               id="officeHours"
+                               th:field="*{officeHours}"
+                               placeholder="例如：周一至周五 9:00-17:00">
+                    </div>
+                </div>
+
+                <!-- 社交媒体链接 -->
+                <h5 class="section-title">
+                    <i class="bi bi-share me-2"></i>
+                    学术社交媒体
+                </h5>
+
+                <div class="row">
+                    <!-- Google Scholar -->
+                    <div class="col-md-12 mb-3">
+                        <label for="googleScholarUrl" class="form-label">
+                            <i class="bi bi-google me-1"></i>
+                            Google Scholar 链接
+                        </label>
+                        <input type="url"
+                               class="form-control"
+                               id="googleScholarUrl"
+                               th:field="*{googleScholarUrl}"
+                               placeholder="https://scholar.google.com/citations?user=...">
+                    </div>
+
+                    <!-- ResearchGate -->
+                    <div class="col-md-12 mb-3">
+                        <label for="researchgateUrl" class="form-label">
+                            <i class="bi bi-share me-1"></i>
+                            ResearchGate 链接
+                        </label>
+                        <input type="url"
+                               class="form-control"
+                               id="researchgateUrl"
+                               th:field="*{researchgateUrl}"
+                               placeholder="https://www.researchgate.net/profile/...">
+                    </div>
+
+                    <!-- LinkedIn -->
+                    <div class="col-md-12 mb-3">
+                        <label for="linkedinUrl" class="form-label">
+                            <i class="bi bi-linkedin me-1"></i>
+                            LinkedIn 链接
+                        </label>
+                        <input type="url"
+                               class="form-control"
+                               id="linkedinUrl"
+                               th:field="*{linkedinUrl}"
+                               placeholder="https://www.linkedin.com/in/...">
+                    </div>
+
+                    <!-- ORCID -->
+                    <div class="col-md-12 mb-3">
+                        <label for="orcidUrl" class="form-label">
+                            <i class="bi bi-person-badge me-1"></i>
+                            ORCID 链接
+                        </label>
+                        <input type="url"
+                               class="form-control"
+                               id="orcidUrl"
+                               th:field="*{orcidUrl}"
+                               placeholder="https://orcid.org/0000-0000-0000-0000">
+                    </div>
+
+                    <!-- 微信二维码 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="wechatQrcode" class="form-label">
+                            <i class="bi bi-wechat me-1"></i>
+                            微信二维码URL
+                        </label>
+                        <input type="url"
+                               class="form-control"
+                               id="wechatQrcode"
+                               th:field="*{wechatQrcode}"
+                               placeholder="上传二维码图片后填写URL">
+                        <div class="form-text">请先上传微信二维码图片，然后填写图片URL</div>
+                    </div>
+                </div>
+
+                <!-- 地图定位 -->
+                <h5 class="section-title">
+                    <i class="bi bi-map me-2"></i>
+                    地图定位（可选）
+                </h5>
+
+                <div class="row">
+                    <!-- 纬度 -->
+                    <div class="col-md-4 mb-3">
+                        <label for="latitude" class="form-label">纬度</label>
+                        <input type="number"
+                               class="form-control"
+                               id="latitude"
+                               th:field="*{latitude}"
+                               step="0.00000001"
+                               placeholder="例如：26.456789">
+                    </div>
+
+                    <!-- 经度 -->
+                    <div class="col-md-4 mb-3">
+                        <label for="longitude" class="form-label">经度</label>
+                        <input type="number"
+                               class="form-control"
+                               id="longitude"
+                               th:field="*{longitude}"
+                               step="0.00000001"
+                               placeholder="例如：106.123456">
+                    </div>
+
+                    <!-- 地图缩放级别 -->
+                    <div class="col-md-4 mb-3">
+                        <label for="mapZoom" class="form-label">地图缩放级别</label>
+                        <input type="number"
+                               class="form-control"
+                               id="mapZoom"
+                               th:field="*{mapZoom}"
+                               min="1"
+                               max="20"
+                               placeholder="15">
+                        <div class="form-text">1-20，推荐15</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>提示：</strong>可以使用高德地图或百度地图获取精确的经纬度坐标
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i>
+                        保存
+                    </button>
+                    <a th:href="@{/admin/contact-info(professorId=${professor.id})}" class="btn btn-secondary btn-lg px-5">
+                        <i class="bi bi-x-circle me-2"></i>
+                        取消
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 提示信息 -->
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>提示：</strong>所有字段均为可选，请根据实际情况填写。社交媒体链接将在前台展示，方便访客联系。
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

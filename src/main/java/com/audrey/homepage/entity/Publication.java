@@ -73,6 +73,12 @@ public class Publication {
     private String url;
 
     /**
+     * PDF文件URL
+     */
+    @Column(length = 500)
+    private String pdfUrl;
+
+    /**
      * 出版物类型：JOURNAL（期刊）、CONFERENCE（会议）、BOOK（书籍）
      */
     @Enumerated(EnumType.STRING)  // 以字符串形式存储枚举

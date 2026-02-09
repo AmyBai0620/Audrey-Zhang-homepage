@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系方式管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .management-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .management-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="management-container">
+        <!-- 导航 -->
+        <div class="mb-3">
+            <a href="/admin" class="btn btn-light">
+                <i class="bi bi-arrow-left me-2"></i>
+                返回后台首页
+            </a>
+        </div>
+
+        <!-- 标题卡片 -->
+        <div class="management-card">
+            <h2 class="mb-4">
+                <i class="bi bi-telephone-fill me-2 text-primary"></i>
+                联系方式管理
+            </h2>
+
+            <!-- 教授选择 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">选择教授</label>
+                <select class="form-select" id="professorSelect" onchange="selectProfessor()">
+                    <option value="">-- 请选择教授 --</option>
+                    <option th:each="prof : ${professors}"
+                            th:value="${prof.id}"
+                            th:text="${prof.name}"
+                            th:selected="${selectedProfessorId != null and prof.id == selectedProfessorId}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- 成功消息 -->
+            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${message}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- 联系方式信息展示 -->
+            <div th:if="${contactInfo != null}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span th:text="${selectedProfessor.name}">教授姓名</span> 的联系方式
+                    </h4>
+                    <a th:href="@{/admin/contact-info/edit(professorId=${selectedProfessorId})}"
+                       class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>编辑联系方式
+                    </a>
+                </div>
+
+                <div class="info-card">
+                    <!-- 办公室信息 -->
+                    <div class="info-item" th:if="${contactInfo.officeLocation}">
+                        <span class="info-label"><i class="bi bi-geo-alt"></i> 办公室地点：</span>
+                        <span th:text="${contactInfo.officeLocation}">办公室地点</span>
+                    </div>
+                    <div class="info-item" th:if="${contactInfo.officePhone}">
+                        <span class="info-label"><i class="bi bi-telephone"></i> 办公室电话：</span>
+                        <span th:text="${contactInfo.officePhone}">电话</span>
+                    </div>
+                    <div class="info-item" th:if="${contactInfo.officeHours}">
+                        <span class="info-label"><i class="bi bi-clock"></i> 办公时间：</span>
+                        <span th:text="${contactInfo.officeHours}">办公时间</span>
+                    </div>
+
+                    <!-- 社交媒体链接 -->
+                    <div class="info-item" th:if="${contactInfo.googleScholarUrl}">
+                        <span class="info-label"><i class="bi bi-google"></i> Google Scholar：</span>
+                        <a th:href="${contactInfo.googleScholarUrl}" target="_blank" th:text="${contactInfo.googleScholarUrl}">链接</a>
+                    </div>
+                    <div class="info-item" th:if="${contactInfo.researchgateUrl}">
+                        <span class="info-label"><i class="bi bi-share"></i> ResearchGate：</span>
+                        <a th:href="${contactInfo.researchgateUrl}" target="_blank" th:text="${contactInfo.researchgateUrl}">链接</a>
+                    </div>
+                    <div class="info-item" th:if="${contactInfo.linkedinUrl}">
+                        <span class="info-label"><i class="bi bi-linkedin"></i> LinkedIn：</span>
+                        <a th:href="${contactInfo.linkedinUrl}" target="_blank" th:text="${contactInfo.linkedinUrl}">链接</a>
+                    </div>
+                    <div class="info-item" th:if="${contactInfo.orcidUrl}">
+                        <span class="info-label"><i class="bi bi-person-badge"></i> ORCID：</span>
+                        <a th:href="${contactInfo.orcidUrl}" target="_blank" th:text="${contactInfo.orcidUrl}">链接</a>
+                    </div>
+
+                    <!-- 地图坐标 -->
+                    <div class="info-item" th:if="${contactInfo.latitude != null and contactInfo.longitude != null}">
+                        <span class="info-label"><i class="bi bi-map"></i> 地图坐标：</span>
+                        <span>纬度: <span th:text="${contactInfo.latitude}">0</span>, 经度: <span th:text="${contactInfo.longitude}">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 未设置联系方式 -->
+            <div th:if="${selectedProfessorId != null and contactInfo == null}">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    该教授尚未设置联系方式
+                </div>
+                <a th:href="@{/admin/contact-info/edit(professorId=${selectedProfessorId})}"
+                   class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>添加联系方式
+                </a>
+            </div>
+
+            <!-- 提示信息 -->
+            <div th:if="${selectedProfessorId == null}" class="alert alert-secondary">
+                <i class="bi bi-arrow-up me-2"></i>
+                请先选择一位教授查看或编辑联系方式
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function selectProfessor() {
+            const professorId = document.getElementById('professorSelect').value;
+            if (professorId) {
+                window.location.href = '/admin/contact-info?professorId=' + professorId;
+            }
+        }
+    </script>
+</body>
+</html>

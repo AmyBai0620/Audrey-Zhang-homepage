@@ -65,6 +65,9 @@
             font-size: 64px;
             font-weight: bold;
             flex-shrink: 0;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .profile-info h1 {
@@ -179,6 +182,51 @@
             opacity: 0.3;
         }
 
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-radius: 25px;
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .social-link:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .social-link i {
+            font-size: 20px;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .wechat-qr {
+            max-width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
         @media (max-width: 768px) {
             .profile-top {
                 flex-direction: column;
@@ -206,7 +254,15 @@
         <!-- 个人信息头部 -->
         <div class="profile-header">
             <div class="profile-top">
-                <div class="profile-avatar" th:text="${#strings.substring(professor.name, 0, 1)}">张</div>
+                <!-- 头像：如果有上传的头像，显示图片；否则显示姓名首字母 -->
+                <img th:if="${professor.avatarUrl != null and professor.avatarUrl != ''}"
+                     th:src="${professor.avatarUrl}"
+                     alt="教授头像"
+                     class="profile-avatar">
+                <div th:unless="${professor.avatarUrl != null and professor.avatarUrl != ''}"
+                     class="profile-avatar"
+                     th:text="${#strings.substring(professor.name, 0, 1)}">张</div>
+
                 <div class="profile-info">
                     <h1 th:text="${professor.name}">教授姓名</h1>
                     <div class="profile-title" th:text="${professor.title}">职称</div>
@@ -235,13 +291,91 @@
             </div>
         </div>
 
+        <!-- 联系方式 -->
+        <div class="section-card" th:if="${contactInfo != null}">
+            <div class="section-title">
+                <i class="bi bi-telephone-fill"></i>
+                联系方式
+            </div>
+
+            <!-- 办公室信息 -->
+            <div th:if="${contactInfo.officeLocation != null or contactInfo.officePhone != null or contactInfo.officeHours != null}">
+                <h5 class="mb-3"><i class="bi bi-building me-2"></i>办公室信息</h5>
+                <div class="item-card">
+                    <div class="item-meta" th:if="${contactInfo.officeLocation}">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <strong>办公室地点：</strong>
+                        <span th:text="${contactInfo.officeLocation}">办公室地点</span>
+                    </div>
+                    <div class="item-meta" th:if="${contactInfo.officePhone}">
+                        <i class="bi bi-telephone-fill"></i>
+                        <strong>办公室电话：</strong>
+                        <a th:href="'tel:' + ${contactInfo.officePhone}" th:text="${contactInfo.officePhone}">电话</a>
+                    </div>
+                    <div class="item-meta" th:if="${contactInfo.officeHours}">
+                        <i class="bi bi-clock-fill"></i>
+                        <strong>办公时间：</strong>
+                        <span th:text="${contactInfo.officeHours}">办公时间</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 学术社交媒体 -->
+            <div th:if="${contactInfo.googleScholarUrl != null or contactInfo.researchgateUrl != null or contactInfo.linkedinUrl != null or contactInfo.orcidUrl != null}">
+                <h5 class="mb-3 mt-4"><i class="bi bi-share me-2"></i>学术社交媒体</h5>
+                <div class="social-links">
+                    <a th:if="${contactInfo.googleScholarUrl}"
+                       th:href="${contactInfo.googleScholarUrl}"
+                       target="_blank"
+                       class="social-link">
+                        <i class="bi bi-google"></i>
+                        <span>Google Scholar</span>
+                    </a>
+                    <a th:if="${contactInfo.researchgateUrl}"
+                       th:href="${contactInfo.researchgateUrl}"
+                       target="_blank"
+                       class="social-link">
+                        <i class="bi bi-share"></i>
+                        <span>ResearchGate</span>
+                    </a>
+                    <a th:if="${contactInfo.linkedinUrl}"
+                       th:href="${contactInfo.linkedinUrl}"
+                       target="_blank"
+                       class="social-link">
+                        <i class="bi bi-linkedin"></i>
+                        <span>LinkedIn</span>
+                    </a>
+                    <a th:if="${contactInfo.orcidUrl}"
+                       th:href="${contactInfo.orcidUrl}"
+                       target="_blank"
+                       class="social-link">
+                        <i class="bi bi-person-badge"></i>
+                        <span>ORCID</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 微信二维码 -->
+            <div th:if="${contactInfo.wechatQrcode}">
+                <h5 class="mb-3 mt-4"><i class="bi bi-wechat me-2"></i>微信联系</h5>
+                <img th:src="${contactInfo.wechatQrcode}" alt="微信二维码" class="wechat-qr">
+            </div>
+
+            <!-- 办公地点地图 -->
+            <div th:if="${contactInfo.latitude != null and contactInfo.longitude != null}">
+                <h5 class="mb-3 mt-4"><i class="bi bi-map me-2"></i>办公地点</h5>
+                <div id="map" class="map-container"></div>
+            </div>
+        </div>
+
         <!-- 个人简介 -->
         <div class="section-card" th:if="${professor.biography}">
             <div class="section-title">
                 <i class="bi bi-person-lines-fill"></i>
                 个人简介
             </div>
-            <div class="biography" th:text="${professor.biography}">
+            <!-- 使用 th:utext 渲染HTML内容 -->
+            <div class="biography" th:utext="${professor.biography}">
                 个人简介内容...
             </div>
         </div>
@@ -290,6 +424,13 @@
                     <i class="bi bi-link-45deg"></i>
                     DOI: <span th:text="${pub.doi}">DOI</span>
                 </div>
+                <!-- 查看详情按钮 -->
+                <div class="mt-3">
+                    <a th:href="@{/publication/{id}(id=${pub.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>查看详情
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -312,7 +453,14 @@
                     <span th:if="${project.endDate}"> - </span>
                     <span th:if="${project.endDate}" th:text="${#temporals.format(project.endDate, 'yyyy-MM')}">结束时间</span>
                 </div>
-                <div th:if="${project.description}" class="mt-2 text-muted" th:text="${project.description}">项目描述</div>
+                <div th:if="${project.description}" class="mt-2 text-muted" th:utext="${project.description}">项目描述</div>
+                <!-- 查看详情按钮 -->
+                <div class="mt-3">
+                    <a th:href="@{/project/{id}(id=${project.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>查看详情
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -328,9 +476,16 @@
                     <i class="bi bi-hash"></i>
                     <span th:text="${course.courseCode}">课程代码</span>
                 </div>
-                <div class="item-meta" th:if="${course.year and course.semester}">
+                <div class="item-meta" th:if="${course.year != null and course.semester != null}">
                     <i class="bi bi-calendar"></i>
                     <span th:text="${course.year} + ' 年 ' + ${course.semester}">学期</span>
+                </div>
+                <!-- 查看详情按钮 -->
+                <div class="mt-3">
+                    <a th:href="@{/course/{id}(id=${course.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>查看详情
+                    </a>
                 </div>
             </div>
         </div>
@@ -351,12 +506,51 @@
                     <i class="bi bi-calendar"></i>
                     <span th:text="${award.year}">年份</span>
                 </div>
-                <div th:if="${award.description}" class="mt-2 text-muted" th:text="${award.description}">描述</div>
+                <div th:if="${award.description}" class="mt-2 text-muted" th:utext="${award.description}">描述</div>
+                <!-- 查看详情按钮 -->
+                <div class="mt-3">
+                    <a th:href="@{/award/{id}(id=${award.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>查看详情
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 高德地图 JS API -->
+    <script th:if="${contactInfo != null and contactInfo.latitude != null and contactInfo.longitude != null}"
+            src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_KEY"></script>
+    <script th:if="${contactInfo != null and contactInfo.latitude != null and contactInfo.longitude != null}">
+        // 初始化地图
+        var map = new AMap.Map('map', {
+            zoom: /*[[${contactInfo.mapZoom != null ? contactInfo.mapZoom : 15}]]*/ 15,
+            center: [/*[[${contactInfo.longitude}]]*/, /*[[${contactInfo.latitude}]]*/],
+            viewMode: '3D'
+        });
+
+        // 添加标记
+        var marker = new AMap.Marker({
+            position: [/*[[${contactInfo.longitude}]]*/, /*[[${contactInfo.latitude}]]*/],
+            title: /*[['办公室位置']]*/
+        });
+
+        map.add(marker);
+
+        // 添加信息窗体
+        var infoWindow = new AMap.InfoWindow({
+            content: '<div style="padding: 10px;">' +
+                     '<h6>/*[[${professor.name}]]*/</h6>' +
+                     '<p>/*[[${contactInfo.officeLocation}]]*/</p>' +
+                     '</div>'
+        });
+
+        marker.on('click', function() {
+            infoWindow.open(map, marker.getPosition());
+        });
+    </script>
 </body>
 </html>

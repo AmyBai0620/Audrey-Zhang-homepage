@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${publication.id != null ? '编辑论文' : '添加论文'}">论文表单</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+        /* PDF上传区域样式 */
+        .pdf-upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px dashed #dee2e6;
+        }
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .upload-btn-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .upload-status {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .pdf-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- 导航 -->
+        <div class="mb-3">
+            <a href="/admin/publications" class="btn btn-light">
+                <i class="bi bi-arrow-left me-2"></i>
+                返回论文列表
+            </a>
+        </div>
+
+        <!-- 表单卡片 -->
+        <div class="form-card">
+            <h2 class="mb-4 text-center">
+                <i class="bi bi-journal-plus me-2 text-success"></i>
+                <span th:text="${publication.id != null ? '编辑论文' : '添加论文'}">论文表单</span>
+            </h2>
+
+            <form th:action="@{/admin/publications/save}" th:object="${publication}" method="post">
+                <input type="hidden" th:field="*{id}" />
+                <!-- 隐藏的PDF URL字段（用于保存PDF路径） -->
+                <input type="hidden" th:field="*{pdfUrl}" id="pdfUrlInput" />
+
+                <div class="row">
+                    <!-- 所属教授 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="professor" class="form-label required">所属教授</label>
+                        <select class="form-select" id="professor" name="professorId" required>
+                            <option value="">-- 请选择教授 --</option>
+                            <option th:each="prof : ${professors}"
+                                    th:value="${prof.id}"
+                                    th:text="${prof.name}"
+                                    th:selected="${publication.professor != null and prof.id == publication.professor.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- 论文标题 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="title" class="form-label required">论文标题</label>
+                        <input type="text"
+                               class="form-control"
+                               id="title"
+                               th:field="*{title}"
+                               placeholder="请输入完整的论文标题"
+                               required>
+                    </div>
+
+                    <!-- 作者列表 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="authors" class="form-label">作者列表</label>
+                        <input type="text"
+                               class="form-control"
+                               id="authors"
+                               th:field="*{authors}"
+                               placeholder="例如：张三, 李四, 王五">
+                        <div class="form-text">多个作者用逗号分隔</div>
+                    </div>
+
+                    <!-- 期刊/会议名称 -->
+                    <div class="col-md-8 mb-3">
+                        <label for="journal" class="form-label">期刊/会议名称</label>
+                        <input type="text"
+                               class="form-control"
+                               id="journal"
+                               th:field="*{journal}"
+                               placeholder="例如：IEEE Transactions on Knowledge and Data Engineering">
+                    </div>
+
+                    <!-- 年份 -->
+                    <div class="col-md-4 mb-3">
+                        <label for="year" class="form-label">发表年份</label>
+                        <input type="number"
+                               class="form-control"
+                               id="year"
+                               th:field="*{year}"
+                               placeholder="2024"
+                               min="1900"
+                               max="2100">
+                    </div>
+
+                    <!-- 论文类型 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="publicationType" class="form-label">论文类型</label>
+                        <select class="form-select" id="publicationType" th:field="*{publicationType}">
+                            <option value="">-- 请选择 --</option>
+                            <option value="JOURNAL">期刊论文</option>
+                            <option value="CONFERENCE">会议论文</option>
+                            <option value="BOOK">书籍</option>
+                            <option value="BOOK_CHAPTER">书籍章节</option>
+                        </select>
+                    </div>
+
+                    <!-- 卷号 -->
+                    <div class="col-md-3 mb-3">
+                        <label for="volume" class="form-label">卷号</label>
+                        <input type="text"
+                               class="form-control"
+                               id="volume"
+                               th:field="*{volume}"
+                               placeholder="Vol. 35">
+                    </div>
+
+                    <!-- 页码 -->
+                    <div class="col-md-3 mb-3">
+                        <label for="pages" class="form-label">页码</label>
+                        <input type="text"
+                               class="form-control"
+                               id="pages"
+                               th:field="*{pages}"
+                               placeholder="123-145">
+                    </div>
+
+                    <!-- DOI -->
+                    <div class="col-md-12 mb-3">
+                        <label for="doi" class="form-label">DOI</label>
+                        <input type="text"
+                               class="form-control"
+                               id="doi"
+                               th:field="*{doi}"
+                               placeholder="例如：10.1109/TKDE.2023.1234567">
+                        <div class="form-text">数字对象唯一标识符</div>
+                    </div>
+
+                    <!-- URL链接 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="url" class="form-label">论文链接</label>
+                        <input type="url"
+                               class="form-control"
+                               id="url"
+                               th:field="*{url}"
+                               placeholder="https://example.com/paper.pdf">
+                        <div class="form-text">论文的在线访问地址</div>
+                    </div>
+
+                    <!-- PDF上传区域（仅在编辑模式下显示） -->
+                    <div class="col-md-12 mb-4" th:if="${publication.id != null}">
+                        <div class="pdf-upload-section">
+                            <h5 class="mb-3">
+                                <i class="bi bi-file-pdf me-2"></i>
+                                论文PDF文件
+                            </h5>
+
+                            <!-- 当前PDF信息 -->
+                            <div class="pdf-info" th:if="${publication.pdfUrl != null and publication.pdfUrl != ''}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-file-pdf-fill text-danger me-2"></i>
+                                        <span>已上传PDF文件</span>
+                                    </div>
+                                    <div>
+                                        <a th:href="${publication.pdfUrl}"
+                                           class="btn btn-sm btn-outline-primary me-2"
+                                           target="_blank">
+                                            <i class="bi bi-eye me-1"></i>
+                                            查看
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                id="deletePdfBtn">
+                                            <i class="bi bi-trash me-1"></i>
+                                            删除
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 上传控制 -->
+                            <div class="mt-3">
+                                <label class="form-label">
+                                    <span th:if="${publication.pdfUrl != null and publication.pdfUrl != ''}">
+                                        更换PDF文件
+                                    </span>
+                                    <span th:unless="${publication.pdfUrl != null and publication.pdfUrl != ''}">
+                                        上传PDF文件
+                                    </span>
+                                </label>
+                                <div class="upload-btn-wrapper">
+                                    <button type="button" class="btn btn-outline-primary">
+                                        <i class="bi bi-cloud-upload me-2"></i>
+                                        选择PDF文件
+                                    </button>
+                                    <input type="file"
+                                           id="pdfFile"
+                                           accept="application/pdf">
+                                </div>
+                            </div>
+
+                            <!-- 上传状态提示 -->
+                            <div id="uploadStatus" class="upload-status"></div>
+
+                            <div class="form-text mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                只支持PDF格式，文件大小不超过 20MB
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提示信息（新增模式） -->
+                    <div class="col-md-12 mb-4" th:if="${publication.id == null}">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>提示：</strong>请先保存论文基本信息，然后再上传PDF文件。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button type="submit" class="btn btn-success btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i>
+                        保存
+                    </button>
+                    <a href="/admin/publications" class="btn btn-secondary btn-lg px-5">
+                        <i class="bi bi-x-circle me-2"></i>
+                        取消
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 提示信息 -->
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>提示：</strong>标有 <span class="text-danger">*</span> 的字段为必填项。请确保论文标题准确无误。
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ========================================
+        // PDF上传功能 JavaScript 代码
+        // ========================================
+
+        // 获取DOM元素
+        const pdfFileInput = document.getElementById('pdfFile');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const pdfUrlInput = document.getElementById('pdfUrlInput');
+        const deletePdfBtn = document.getElementById('deletePdfBtn');
+        const publicationIdInput = document.querySelector('input[name="id"]');
+        const publicationId = publicationIdInput ? publicationIdInput.value : null;
+        const urlInput = document.getElementById('url');
+
+        // ========================================
+        // URL格式验证和自动修正
+        // ========================================
+        if (urlInput) {
+            // 当用户离开URL输入框时，自动添加协议前缀
+            urlInput.addEventListener('blur', function() {
+                let url = this.value.trim();
+
+                // 如果URL不为空且没有协议前缀，自动添加https://
+                if (url && !url.match(/^https?:\/\//i)) {
+                    this.value = 'https://' + url;
+                }
+            });
+
+            // 表单提交前再次验证
+            const form = urlInput.closest('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let url = urlInput.value.trim();
+                    if (url && !url.match(/^https?:\/\//i)) {
+                        urlInput.value = 'https://' + url;
+                    }
+                });
+            }
+        }
+
+        // ========================================
+        // 1. 文件选择事件监听
+        // ========================================
+        if (pdfFileInput) {
+            pdfFileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+
+                // 如果没有选择文件，直接返回
+                if (!file) {
+                    return;
+                }
+
+                // 验证文件
+                if (!validatePdfFile(file)) {
+                    return;
+                }
+
+                // 如果是编辑模式（有论文ID），立即上传
+                if (publicationId) {
+                    uploadPdf(file);
+                } else {
+                    // 新增模式：提示用户先保存论文信息
+                    showStatus('请先保存论文基本信息，然后再上传PDF文件', 'warning');
+                }
+            });
+        }
+
+        // ========================================
+        // 2. 文件验证函数
+        // ========================================
+        function validatePdfFile(file) {
+            // 验证文件类型
+            if (file.type !== 'application/pdf') {
+                showStatus('只允许上传PDF格式的文件', 'danger');
+                return false;
+            }
+
+            // 验证文件大小（20MB = 20 * 1024 * 1024 字节）
+            const maxSize = 20 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showStatus('文件大小不能超过 20MB，当前文件：' + formatFileSize(file.size), 'danger');
+                return false;
+            }
+
+            return true;
+        }
+
+        // ========================================
+        // 3. 上传PDF到服务器
+        // ========================================
+        function uploadPdf(file) {
+            // 创建 FormData 对象（用于发送文件）
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 显示上传中状态
+            showStatus('正在上传PDF文件...', 'info');
+
+            // 使用 Fetch API 发送 AJAX 请求
+            fetch(`/api/upload/pdf/${publicationId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())  // 解析 JSON 响应
+            .then(data => {
+                if (data.success) {
+                    // 上传成功
+                    showStatus('PDF文件上传成功！页面将在3秒后刷新...', 'success');
+                    // 更新隐藏的 pdfUrl 字段
+                    pdfUrlInput.value = data.pdfUrl;
+                    // 3秒后刷新页面以显示新上传的PDF
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    // 上传失败
+                    showStatus('上传失败：' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                // 网络错误或其他异常
+                console.error('上传错误：', error);
+                showStatus('上传失败，请检查网络连接', 'danger');
+            });
+        }
+
+        // ========================================
+        // 4. 删除PDF
+        // ========================================
+        if (deletePdfBtn) {
+            deletePdfBtn.addEventListener('click', function() {
+                if (!confirm('确定要删除当前PDF文件吗？')) {
+                    return;
+                }
+
+                showStatus('正在删除...', 'info');
+
+                fetch(`/api/upload/pdf/${publicationId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showStatus('PDF文件已删除，页面将在2秒后刷新...', 'success');
+                        // 清空隐藏字段
+                        pdfUrlInput.value = '';
+                        // 2秒后刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        showStatus('删除失败：' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除错误：', error);
+                    showStatus('删除失败，请检查网络连接', 'danger');
+                });
+            });
+        }
+
+        // ========================================
+        // 5. 辅助函数：显示状态消息
+        // ========================================
+        function showStatus(message, type) {
+            // type: success, danger, warning, info
+            if (uploadStatus) {
+                uploadStatus.innerHTML = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+            }
+        }
+
+        // ========================================
+        // 6. 辅助函数：格式化文件大小
+        // ========================================
+        function formatFileSize(bytes) {
+            if (bytes < 1024) {
+                return bytes + ' B';
+            } else if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(2) + ' KB';
+            } else {
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            }
+        }
+    </script>
+</body>
+</html>

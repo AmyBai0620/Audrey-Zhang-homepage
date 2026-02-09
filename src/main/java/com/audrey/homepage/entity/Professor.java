@@ -61,34 +61,42 @@ public class Professor {
     private String biography;
 
     /**
+     * 头像URL
+     * 存储头像图片的路径，如：/uploads/avatars/1_1642567890123.jpg
+     */
+    @Column(length = 500)
+    private String avatarUrl;
+
+    /**
      * 一对多关系：一个教授有多篇论文
      * mappedBy指向Publication类中的professor字段
      * cascade表示级联操作：删除教授时，相关论文也会被删除
+     * fetch = FetchType.EAGER 表示立即加载
      */
-    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Publication> publications = new ArrayList<>();
 
     /**
      * 一对多关系：一个教授有多个教育背景
      */
-    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Education> educations = new ArrayList<>();
 
     /**
      * 一对多关系：一个教授有多个研究项目
      */
-    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ResearchProject> researchProjects = new ArrayList<>();
 
     /**
      * 一对多关系：一个教授教授多门课程
      */
-    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<TeachingCourse> teachingCourses = new ArrayList<>();
 
     /**
      * 一对多关系：一个教授有多个奖项
      */
-    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Award> awards = new ArrayList<>();
 }

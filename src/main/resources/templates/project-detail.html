@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${project.title} + ' - 项目详情'">项目详情</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar a {
+            color: white !important;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .detail-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .project-title {
+            color: #333;
+            font-weight: 700;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        .status-ongoing {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-completed {
+            background: #6c757d;
+            color: white;
+        }
+
+        .status-planned {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .info-label {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-content {
+            color: #555;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .description-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .description-section h5 {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-top: 30px;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #ddd, transparent);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <a th:href="@{/professor/{id}(id=${project.professor.id})}">
+                <i class="bi bi-arrow-left-circle"></i> 返回教授主页
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="detail-card">
+            <!-- 项目标题 -->
+            <h1 class="project-title" th:text="${project.title}">项目名称</h1>
+
+            <!-- 项目状态 -->
+            <div th:if="${project.status}">
+                <span th:class="'status-badge status-' + ${#strings.toLowerCase(project.status)}"
+                      th:text="${project.status == T(com.audrey.homepage.entity.ResearchProject.ProjectStatus).ONGOING ? '进行中' :
+                               (project.status == T(com.audrey.homepage.entity.ResearchProject.ProjectStatus).COMPLETED ? '已完成' : '计划中')}">
+                    状态
+                </span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- 资助来源 -->
+            <div class="info-section" th:if="${project.fundingSource}">
+                <div class="info-label">
+                    <i class="bi bi-cash-stack"></i>
+                    资助来源
+                </div>
+                <div class="info-content" th:text="${project.fundingSource}">资助来源</div>
+            </div>
+
+            <!-- 项目金额 -->
+            <div class="info-section" th:if="${project.fundingAmount}">
+                <div class="info-label">
+                    <i class="bi bi-currency-dollar"></i>
+                    项目金额
+                </div>
+                <div class="info-content">
+                    <span th:text="${#numbers.formatDecimal(project.fundingAmount, 0, 'COMMA', 2, 'POINT')}">0.00</span> 元
+                </div>
+            </div>
+
+            <!-- 项目时间 -->
+            <div class="info-section" th:if="${project.startDate}">
+                <div class="info-label">
+                    <i class="bi bi-calendar-range"></i>
+                    项目时间
+                </div>
+                <div class="info-content">
+                    <span th:text="${#temporals.format(project.startDate, 'yyyy年MM月')}">开始时间</span>
+                    <span th:if="${project.endDate}"> - </span>
+                    <span th:if="${project.endDate}" th:text="${#temporals.format(project.endDate, 'yyyy年MM月')}">结束时间</span>
+                    <span th:unless="${project.endDate}"> - 至今</span>
+                </div>
+            </div>
+
+            <!-- 项目描述 -->
+            <div class="description-section" th:if="${project.description}">
+                <h5>
+                    <i class="bi bi-file-text"></i>
+                    项目描述
+                </h5>
+                <div th:utext="${project.description}">项目详细描述...</div>
+            </div>
+
+            <!-- 返回按钮 -->
+            <a th:href="@{/professor/{id}(id=${project.professor.id})}" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                返回教授主页
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

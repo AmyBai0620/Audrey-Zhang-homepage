@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${education.id != null ? '编辑教育经历' : '添加教育经历'}">教育经历表单</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- 导航 -->
+        <div class="mb-3">
+            <a href="/admin/educations" class="btn btn-light">
+                <i class="bi bi-arrow-left me-2"></i>
+                返回教育经历列表
+            </a>
+        </div>
+
+        <!-- 表单卡片 -->
+        <div class="form-card">
+            <h2 class="mb-4 text-center">
+                <i class="bi bi-mortarboard-fill me-2 text-warning"></i>
+                <span th:text="${education.id != null ? '编辑教育经历' : '添加教育经历'}">教育经历表单</span>
+            </h2>
+
+            <form th:action="@{/admin/educations/save}" th:object="${education}" method="post">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row">
+                    <!-- 所属教授 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="professor" class="form-label required">所属教授</label>
+                        <select class="form-select" id="professor" name="professorId" required>
+                            <option value="">-- 请选择教授 --</option>
+                            <option th:each="prof : ${professors}"
+                                    th:value="${prof.id}"
+                                    th:text="${prof.name}"
+                                    th:selected="${education.professor != null and prof.id == education.professor.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- 学位 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="degree" class="form-label required">学位</label>
+                        <select class="form-select" id="degree" th:field="*{degree}" required>
+                            <option value="">-- 请选择学位 --</option>
+                            <option value="BACHELOR">本科</option>
+                            <option value="MASTER">硕士</option>
+                            <option value="PHD">博士</option>
+                            <option value="POSTDOC">博士后</option>
+                        </select>
+                    </div>
+
+                    <!-- 专业 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="major" class="form-label required">专业</label>
+                        <input type="text"
+                               class="form-control"
+                               id="major"
+                               th:field="*{major}"
+                               placeholder="例如：计算机科学与技术"
+                               required>
+                    </div>
+
+                    <!-- 大学 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="university" class="form-label required">大学</label>
+                        <input type="text"
+                               class="form-control"
+                               id="university"
+                               th:field="*{university}"
+                               placeholder="例如：清华大学"
+                               required>
+                    </div>
+
+                    <!-- 开始年份 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="startYear" class="form-label">开始年份</label>
+                        <input type="number"
+                               class="form-control"
+                               id="startYear"
+                               th:field="*{startYear}"
+                               placeholder="2010"
+                               min="1900"
+                               max="2100">
+                    </div>
+
+                    <!-- 结束年份 -->
+                    <div class="col-md-6 mb-4">
+                        <label for="endYear" class="form-label">结束年份</label>
+                        <input type="number"
+                               class="form-control"
+                               id="endYear"
+                               th:field="*{endYear}"
+                               placeholder="2014"
+                               min="1900"
+                               max="2100">
+                        <div class="form-text">如果仍在进行中，可以不填</div>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button type="submit" class="btn btn-warning btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i>
+                        保存
+                    </button>
+                    <a href="/admin/educations" class="btn btn-secondary btn-lg px-5">
+                        <i class="bi bi-x-circle me-2"></i>
+                        取消
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 提示信息 -->
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>提示：</strong>标有 <span class="text-danger">*</span> 的字段为必填项。请确保信息准确无误。
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

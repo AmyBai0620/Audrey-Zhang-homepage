@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教授管理 - 后台管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .table-actions button {
+            margin: 0 5px;
+        }
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 导航栏 -->
+        <nav class="navbar navbar-custom">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="bi bi-gear-fill"></i> 后台管理系统
+                </span>
+                <div class="d-flex">
+                    <a href="/" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-house"></i> 返回首页
+                    </a>
+                    <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                        <i class="bi bi-grid"></i> 管理面板
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-people-fill"></i> 教授信息管理
+                </h4>
+                <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addProfessorModal">
+                    <i class="bi bi-plus-circle"></i> 添加教授
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- 教授列表 -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>姓名</th>
+                                <th>职称</th>
+                                <th>大学</th>
+                                <th>院系</th>
+                                <th>邮箱</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${professors.empty}">
+                                <td colspan="7" class="text-center text-muted">暂无教授信息</td>
+                            </tr>
+                            <tr th:each="professor : ${professors}">
+                                <td th:text="${professor.id}">1</td>
+                                <td th:text="${professor.name}">张三</td>
+                                <td th:text="${professor.title}">副教授</td>
+                                <td th:text="${professor.university}">贵州财经大学</td>
+                                <td th:text="${professor.department}">信息学院</td>
+                                <td th:text="${professor.email}">example@gufe.edu.cn</td>
+                                <td class="table-actions">
+                                    <button class="btn btn-sm btn-info"
+                                            th:onclick="'viewProfessor(' + ${professor.id} + ')'">
+                                        <i class="bi bi-eye"></i> 查看
+                                    </button>
+                                    <button class="btn btn-sm btn-warning"
+                                            th:onclick="'editProfessor(' + ${professor.id} + ')'">
+                                        <i class="bi bi-pencil"></i> 编辑
+                                    </button>
+                                    <button class="btn btn-sm btn-danger"
+                                            th:onclick="'deleteProfessor(' + ${professor.id} + ', \'' + ${professor.name} + '\')'">
+                                        <i class="bi bi-trash"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加教授模态框 -->
+    <div class="modal fade" id="addProfessorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">添加新教授</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProfessorForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">姓名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">职称</label>
+                                <input type="text" class="form-control" name="title" placeholder="例如：副教授">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">大学</label>
+                                <input type="text" class="form-control" name="university" placeholder="例如：贵州财经大学">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">院系</label>
+                                <input type="text" class="form-control" name="department" placeholder="例如：信息学院">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" name="email" placeholder="example@gufe.edu.cn">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">研究方向</label>
+                            <textarea class="form-control" name="researchInterests" rows="2"
+                                      placeholder="例如：数据挖掘、机器学习、人工智能"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">个人简介</label>
+                            <textarea class="form-control" name="biography" rows="4"
+                                      placeholder="请输入个人简介..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProfessor()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑教授模态框 -->
+    <div class="modal fade" id="editProfessorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">编辑教授信息</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfessorForm">
+                        <input type="hidden" name="id" id="edit_id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">姓名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" id="edit_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">职称</label>
+                                <input type="text" class="form-control" name="title" id="edit_title">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">大学</label>
+                                <input type="text" class="form-control" name="university" id="edit_university">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">院系</label>
+                                <input type="text" class="form-control" name="department" id="edit_department">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" name="email" id="edit_email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">研究方向</label>
+                            <textarea class="form-control" name="researchInterests" id="edit_researchInterests" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">个人简介</label>
+                            <textarea class="form-control" name="biography" id="edit_biography" rows="4"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-warning" onclick="updateProfessor()">更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 保存新教授
+        function saveProfessor() {
+            const form = document.getElementById('addProfessorForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch('/api/professors', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('保存失败');
+                return response.json();
+            })
+            .then(data => {
+                alert('教授信息保存成功！');
+                location.reload();
+            })
+            .catch(error => {
+                alert('保存失败：' + error.message);
+            });
+        }
+
+        // 查看教授详情
+        function viewProfessor(id) {
+            window.location.href = '/professor/' + id;
+        }
+
+        // 编辑教授
+        function editProfessor(id) {
+            fetch('/api/professors/' + id)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('edit_id').value = data.id;
+                    document.getElementById('edit_name').value = data.name || '';
+                    document.getElementById('edit_title').value = data.title || '';
+                    document.getElementById('edit_university').value = data.university || '';
+                    document.getElementById('edit_department').value = data.department || '';
+                    document.getElementById('edit_email').value = data.email || '';
+                    document.getElementById('edit_researchInterests').value = data.researchInterests || '';
+                    document.getElementById('edit_biography').value = data.biography || '';
+
+                    const modal = new bootstrap.Modal(document.getElementById('editProfessorModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    alert('获取教授信息失败：' + error.message);
+                });
+        }
+
+        // 更新教授信息
+        function updateProfessor() {
+            const form = document.getElementById('editProfessorForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            const id = data.id;
+
+            fetch('/api/professors/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('更新失败');
+                return response.json();
+            })
+            .then(data => {
+                alert('教授信息更新成功！');
+                location.reload();
+            })
+            .catch(error => {
+                alert('更新失败：' + error.message);
+            });
+        }
+
+        // 删除教授
+        function deleteProfessor(id, name) {
+            if (!confirm('确定要删除教授 "' + name + '" 吗？此操作将同时删除该教授的所有相关信息（论文、教育背景、科研项目等）！')) {
+                return;
+            }
+
+            fetch('/api/professors/' + id, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('删除失败');
+                alert('教授信息删除成功！');
+                location.reload();
+            })
+            .catch(error => {
+                alert('删除失败：' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

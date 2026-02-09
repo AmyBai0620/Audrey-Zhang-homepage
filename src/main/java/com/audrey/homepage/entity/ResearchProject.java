@@ -63,6 +63,14 @@ public class ResearchProject {
     @Column(length = 20)
     private ProjectStatus status;
 
+    /**
+     * 项目图片
+     * 存储多张图片的路径，JSON数组格式
+     * 示例：["img1.jpg", "img2.jpg", "img3.jpg"]
+     */
+    @Column(columnDefinition = "TEXT")
+    private String images;
+
     public enum ProjectStatus {
         ONGOING,    // 进行中
         COMPLETED,  // 已完成

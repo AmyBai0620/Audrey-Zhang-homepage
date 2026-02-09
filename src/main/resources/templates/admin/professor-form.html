@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${professor.id != null ? '编辑教授' : '添加教授'}">教授表单</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Summernote 富文本编辑器 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 修复Summernote全屏模式的背景 */
+        .note-editor.note-frame.fullscreen {
+            background: white !important;
+            z-index: 9999 !important;
+        }
+        .note-editor.note-frame.fullscreen .note-editing-area {
+            background: white !important;
+        }
+        .note-editor.note-frame.fullscreen .note-editable {
+            background: white !important;
+        }
+        .note-editor.note-frame.fullscreen .note-toolbar {
+            background: #f8f9fa !important;
+        }
+
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+        /* 头像上传区域样式 */
+        .avatar-upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+        }
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .avatar-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #adb5bd;
+            border: 3px solid #dee2e6;
+        }
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .upload-btn-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .upload-status {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- 导航 -->
+        <div class="mb-3">
+            <a href="/admin/professors" class="btn btn-light">
+                <i class="bi bi-arrow-left me-2"></i>
+                返回教授列表
+            </a>
+        </div>
+
+        <!-- 表单卡片 -->
+        <div class="form-card">
+            <h2 class="mb-4 text-center">
+                <i class="bi bi-person-plus-fill me-2 text-primary"></i>
+                <span th:text="${professor.id != null ? '编辑教授信息' : '添加新教授'}">教授表单</span>
+            </h2>
+
+            <form th:action="@{/admin/professors/save}" th:object="${professor}" method="post">
+                <!-- 隐藏的ID字段（编辑时需要） -->
+                <input type="hidden" th:field="*{id}" />
+                <!-- 隐藏的头像URL字段（用于保存头像路径） -->
+                <input type="hidden" th:field="*{avatarUrl}" id="avatarUrlInput" />
+
+                <!-- 头像上传区域 -->
+                <div class="avatar-upload-section">
+                    <h5 class="mb-3">
+                        <i class="bi bi-person-circle me-2"></i>
+                        教授头像
+                    </h5>
+                    <div class="row align-items-center">
+                        <!-- 头像预览 -->
+                        <div class="col-md-4 text-center">
+                            <!-- 如果有头像，显示头像；否则显示占位符 -->
+                            <img th:if="${professor.avatarUrl != null and professor.avatarUrl != ''}"
+                                 th:src="${professor.avatarUrl}"
+                                 alt="教授头像"
+                                 class="avatar-preview"
+                                 id="avatarPreview">
+                            <div th:unless="${professor.avatarUrl != null and professor.avatarUrl != ''}"
+                                 class="avatar-placeholder"
+                                 id="avatarPlaceholder">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        </div>
+
+                        <!-- 上传控制 -->
+                        <div class="col-md-8">
+                            <div class="mb-2">
+                                <label class="form-label">选择头像图片</label>
+                                <div class="upload-btn-wrapper">
+                                    <button type="button" class="btn btn-outline-primary">
+                                        <i class="bi bi-cloud-upload me-2"></i>
+                                        选择图片
+                                    </button>
+                                    <input type="file"
+                                           id="avatarFile"
+                                           accept="image/jpeg,image/png,image/gif,image/webp">
+                                </div>
+                            </div>
+
+                            <!-- 删除头像按钮（仅在有头像时显示） -->
+                            <div class="mb-2" th:if="${professor.avatarUrl != null and professor.avatarUrl != ''}">
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm"
+                                        id="deleteAvatarBtn">
+                                    <i class="bi bi-trash me-2"></i>
+                                    删除当前头像
+                                </button>
+                            </div>
+
+                            <!-- 上传状态提示 -->
+                            <div id="uploadStatus" class="upload-status"></div>
+
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                支持 JPG、PNG、GIF、WebP 格式，文件大小不超过 5MB
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 姓名 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label required">姓名</label>
+                        <input type="text"
+                               class="form-control"
+                               id="name"
+                               th:field="*{name}"
+                               placeholder="例如：张慧敏"
+                               required>
+                        <div class="form-text">请输入教授的全名</div>
+                    </div>
+
+                    <!-- 职称 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="title" class="form-label">职称</label>
+                        <input type="text"
+                               class="form-control"
+                               id="title"
+                               th:field="*{title}"
+                               placeholder="例如：副教授">
+                        <div class="form-text">如：教授、副教授、讲师等</div>
+                    </div>
+
+                    <!-- 大学 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="university" class="form-label">大学/机构</label>
+                        <input type="text"
+                               class="form-control"
+                               id="university"
+                               th:field="*{university}"
+                               placeholder="例如：贵州财经大学">
+                    </div>
+
+                    <!-- 学院/部门 -->
+                    <div class="col-md-6 mb-3">
+                        <label for="department" class="form-label">学院/部门</label>
+                        <input type="text"
+                               class="form-control"
+                               id="department"
+                               th:field="*{department}"
+                               placeholder="例如：信息学院">
+                    </div>
+
+                    <!-- 邮箱 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               th:field="*{email}"
+                               placeholder="例如：zhanghuimin@gufe.edu.cn">
+                        <div class="form-text">请输入有效的邮箱地址</div>
+                    </div>
+
+                    <!-- 研究方向 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="researchInterests" class="form-label">研究方向</label>
+                        <textarea class="form-control"
+                                  id="researchInterests"
+                                  th:field="*{researchInterests}"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="例如：数据挖掘、机器学习、人工智能"></textarea>
+                        <div class="form-text">最多500字</div>
+                    </div>
+
+                    <!-- 个人简介 -->
+                    <div class="col-md-12 mb-4">
+                        <label for="biography" class="form-label">个人简介</label>
+                        <textarea class="form-control"
+                                  id="biography"
+                                  th:field="*{biography}"
+                                  rows="6"
+                                  placeholder="请输入详细的个人简介，包括教育背景、工作经历、研究成果等..."></textarea>
+                        <div class="form-text">详细介绍教授的学术背景和成就</div>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i>
+                        保存
+                    </button>
+                    <a href="/admin/professors" class="btn btn-secondary btn-lg px-5">
+                        <i class="bi bi-x-circle me-2"></i>
+                        取消
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 提示信息 -->
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>提示：</strong>标有 <span class="text-danger">*</span> 的字段为必填项。保存后，您可以继续添加该教授的论文、教育背景、科研项目等详细信息。
+        </div>
+    </div>
+
+    <!-- jQuery（Summernote 依赖） - 必须先加载 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Summernote 富文本编辑器 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <!-- Summernote 中文语言包 -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-zh-CN.min.js"></script>
+
+    <script>
+        // ========================================
+        // 头像上传功能 JavaScript 代码
+        // ========================================
+
+        // 获取DOM元素
+        const avatarFileInput = document.getElementById('avatarFile');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const avatarUrlInput = document.getElementById('avatarUrlInput');
+        const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
+        const professorId = document.querySelector('input[name="id"]').value;
+
+        // ========================================
+        // 1. 文件选择事件监听
+        // ========================================
+        if (avatarFileInput) {
+            avatarFileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];  // 获取选中的文件
+
+                // 如果没有选择文件，直接返回
+                if (!file) {
+                    return;
+                }
+
+                // 验证文件
+                if (!validateFile(file)) {
+                    return;
+                }
+
+                // 显示预览
+                showPreview(file);
+
+                // 如果是编辑模式（有教授ID），立即上传
+                if (professorId) {
+                    uploadAvatar(file);
+                } else {
+                    // 新增模式：提示用户先保存教授信息
+                    showStatus('请先保存教授基本信息，然后再上传头像', 'warning');
+                }
+            });
+        }
+
+        // ========================================
+        // 2. 文件验证函数
+        // ========================================
+        function validateFile(file) {
+            // 验证文件类型
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showStatus('只允许上传 JPG、PNG、GIF、WebP 格式的图片', 'danger');
+                return false;
+            }
+
+            // 验证文件大小（5MB = 5 * 1024 * 1024 字节）
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showStatus('文件大小不能超过 5MB，当前文件：' + formatFileSize(file.size), 'danger');
+                return false;
+            }
+
+            return true;
+        }
+
+        // ========================================
+        // 3. 显示图片预览
+        // ========================================
+        function showPreview(file) {
+            // 使用 FileReader 读取文件内容
+            const reader = new FileReader();
+
+            // 文件读取完成后的回调
+            reader.onload = function(e) {
+                // e.target.result 是图片的 Base64 数据
+                if (avatarPreview) {
+                    // 如果已有预览图，更新src
+                    avatarPreview.src = e.target.result;
+                    avatarPreview.style.display = 'block';
+                } else {
+                    // 如果是占位符，替换为img元素
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '教授头像';
+                    img.className = 'avatar-preview';
+                    img.id = 'avatarPreview';
+                    avatarPlaceholder.replaceWith(img);
+                }
+            };
+
+            // 开始读取文件（读取为 Data URL 格式）
+            reader.readAsDataURL(file);
+        }
+
+        // ========================================
+        // 4. 上传头像到服务器
+        // ========================================
+        function uploadAvatar(file) {
+            // 创建 FormData 对象（用于发送文件）
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 显示上传中状态
+            showStatus('正在上传...', 'info');
+
+            // 使用 Fetch API 发送 AJAX 请求
+            fetch(`/api/upload/avatar/${professorId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())  // 解析 JSON 响应
+            .then(data => {
+                if (data.success) {
+                    // 上传成功
+                    showStatus('头像上传成功！', 'success');
+                    // 更新隐藏的 avatarUrl 字段
+                    avatarUrlInput.value = data.avatarUrl;
+                    // 显示删除按钮（如果之前没有）
+                    if (deleteAvatarBtn) {
+                        deleteAvatarBtn.style.display = 'block';
+                    }
+                } else {
+                    // 上传失败
+                    showStatus('上传失败：' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                // 网络错误或其他异常
+                console.error('上传错误：', error);
+                showStatus('上传失败，请检查网络连接', 'danger');
+            });
+        }
+
+        // ========================================
+        // 5. 删除头像
+        // ========================================
+        if (deleteAvatarBtn) {
+            deleteAvatarBtn.addEventListener('click', function() {
+                if (!confirm('确定要删除当前头像吗？')) {
+                    return;
+                }
+
+                showStatus('正在删除...', 'info');
+
+                fetch(`/api/upload/avatar/${professorId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showStatus('头像已删除', 'success');
+                        // 清空隐藏字段
+                        avatarUrlInput.value = '';
+                        // 替换预览为占位符
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'avatar-placeholder';
+                        placeholder.id = 'avatarPlaceholder';
+                        placeholder.innerHTML = '<i class="bi bi-person"></i>';
+                        document.getElementById('avatarPreview').replaceWith(placeholder);
+                        // 隐藏删除按钮
+                        deleteAvatarBtn.style.display = 'none';
+                    } else {
+                        showStatus('删除失败：' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除错误：', error);
+                    showStatus('删除失败，请检查网络连接', 'danger');
+                });
+            });
+        }
+
+        // ========================================
+        // 6. 辅助函数：显示状态消息
+        // ========================================
+        function showStatus(message, type) {
+            // type: success, danger, warning, info
+            uploadStatus.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        // ========================================
+        // 7. 辅助函数：格式化文件大小
+        // ========================================
+        function formatFileSize(bytes) {
+            if (bytes < 1024) {
+                return bytes + ' B';
+            } else if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(2) + ' KB';
+            } else {
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            }
+        }
+
+        // ========================================
+        // 8. 初始化富文本编辑器（Summernote）
+        // ========================================
+        $(document).ready(function() {
+            // 初始化个人简介编辑器
+            $('#biography').summernote({
+                // 编辑器高度
+                height: 300,
+
+                // 语言设置（中文）
+                lang: 'zh-CN',
+
+                // 占位符文本
+                placeholder: '请输入教授的详细个人简介，包括教育背景、工作经历、研究成果等...',
+
+                // 工具栏配置
+                toolbar: [
+                    // 字体样式
+                    ['style', ['style']],  // 段落样式（标题、正文等）
+                    ['font', ['bold', 'italic', 'underline', 'clear']],  // 粗体、斜体、下划线、清除格式
+
+                    // 字体颜色
+                    ['color', ['color']],  // 文字颜色、背景色
+
+                    // 段落格式
+                    ['para', ['ul', 'ol', 'paragraph']],  // 无序列表、有序列表、段落对齐
+
+                    // 插入内容
+                    ['insert', ['link', 'picture']],  // 插入链接、图片
+
+                    // 其他功能
+                    ['view', ['fullscreen', 'codeview', 'help']]  // 全屏、代码视图、帮助
+                ],
+
+                // 提示信息
+                tooltip: true,
+
+                // 焦点设置
+                focus: false,
+
+                // 回调函数：内容改变时
+                callbacks: {
+                    onChange: function(contents, $editable) {
+                        // 可以在这里添加自动保存等功能
+                        console.log('内容已改变:', contents);
+                    }
+                }
+            });
+
+            // 如果是编辑模式，设置初始内容
+            // Thymeleaf 已经通过 th:field 设置了 textarea 的值
+            // Summernote 会自动读取 textarea 的内容
+        });
+    </script>
+</body>
+</html>

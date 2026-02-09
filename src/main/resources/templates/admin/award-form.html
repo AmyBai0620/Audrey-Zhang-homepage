@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${award.id != null ? '编辑奖项' : '添加奖项'}">奖项表单</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Summernote 富文本编辑器 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 修复Summernote全屏模式的背景 */
+        .note-editor.note-frame.fullscreen {
+            background: white !important;
+            z-index: 9999 !important;
+        }
+        .note-editor.note-frame.fullscreen .note-editing-area {
+            background: white !important;
+        }
+        .note-editor.note-frame.fullscreen .note-editable {
+            background: white !important;
+        }
+        .note-editor.note-frame.fullscreen .note-toolbar {
+            background: #f8f9fa !important;
+        }
+
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- 导航 -->
+        <div class="mb-3">
+            <a href="/admin/awards" class="btn btn-light">
+                <i class="bi bi-arrow-left me-2"></i>
+                返回奖项列表
+            </a>
+        </div>
+
+        <!-- 表单卡片 -->
+        <div class="form-card">
+            <h2 class="mb-4 text-center">
+                <i class="bi bi-trophy-fill me-2 text-secondary"></i>
+                <span th:text="${award.id != null ? '编辑奖项' : '添加奖项'}">奖项表单</span>
+            </h2>
+
+            <form th:action="@{/admin/awards/save}" th:object="${award}" method="post">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row">
+                    <!-- 所属教授 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="professor" class="form-label required">所属教授</label>
+                        <select class="form-select" id="professor" name="professorId" required>
+                            <option value="">-- 请选择教授 --</option>
+                            <option th:each="prof : ${professors}"
+                                    th:value="${prof.id}"
+                                    th:text="${prof.name}"
+                                    th:selected="${award.professor != null and prof.id == award.professor.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- 奖项名称 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="title" class="form-label required">奖项名称</label>
+                        <input type="text"
+                               class="form-control"
+                               id="title"
+                               th:field="*{title}"
+                               placeholder="请输入奖项名称"
+                               required>
+                    </div>
+
+                    <!-- 颁发机构 -->
+                    <div class="col-md-8 mb-3">
+                        <label for="organization" class="form-label">颁发机构</label>
+                        <input type="text"
+                               class="form-control"
+                               id="organization"
+                               th:field="*{organization}"
+                               placeholder="例如：中国计算机学会">
+                    </div>
+
+                    <!-- 年份 -->
+                    <div class="col-md-4 mb-3">
+                        <label for="year" class="form-label">获奖年份</label>
+                        <input type="number"
+                               class="form-control"
+                               id="year"
+                               th:field="*{year}"
+                               placeholder="2024"
+                               min="1900"
+                               max="2100">
+                    </div>
+
+                    <!-- 奖项级别 -->
+                    <div class="col-md-12 mb-3">
+                        <label for="level" class="form-label">奖项级别</label>
+                        <select class="form-select" id="level" th:field="*{level}">
+                            <option value="">-- 请选择级别 --</option>
+                            <option value="INTERNATIONAL">国际级</option>
+                            <option value="NATIONAL">国家级</option>
+                            <option value="PROVINCIAL">省级</option>
+                            <option value="UNIVERSITY">校级</option>
+                            <option value="OTHER">其他</option>
+                        </select>
+                    </div>
+
+                    <!-- 奖项描述 -->
+                    <div class="col-md-12 mb-4">
+                        <label for="description" class="form-label">奖项描述</label>
+                        <textarea class="form-control"
+                                  id="description"
+                                  th:field="*{description}"
+                                  rows="4"
+                                  placeholder="请输入奖项描述"></textarea>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button type="submit" class="btn btn-secondary btn-lg px-5">
+                        <i class="bi bi-check-circle me-2"></i>
+                        保存
+                    </button>
+                    <a href="/admin/awards" class="btn btn-outline-secondary btn-lg px-5">
+                        <i class="bi bi-x-circle me-2"></i>
+                        取消
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 提示信息 -->
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>提示：</strong>标有 <span class="text-danger">*</span> 的字段为必填项。请确保奖项信息准确无误。
+        </div>
+    </div>
+
+    <!-- jQuery（Summernote 依赖） - 必须先加载 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Summernote 富文本编辑器 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <!-- Summernote 中文语言包 -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-zh-CN.min.js"></script>
+
+    <script>
+        // 初始化富文本编辑器
+        $(document).ready(function() {
+            $('#description').summernote({
+                height: 200,
+                lang: 'zh-CN',
+                placeholder: '请输入奖项的详细描述，包括获奖原因、意义等...',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+        });
+    </script>
+</body>
+</html>

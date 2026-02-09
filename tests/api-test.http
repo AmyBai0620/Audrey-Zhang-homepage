@@ -8,7 +8,7 @@ POST http://localhost:8080/api/professors
 Content-Type: application/json
 
 {
-  "name": "张慧敏",
+  "name": "张小敏",
   "title": "副教授",
   "university": "贵州财经大学",
   "department": "信息学院",
@@ -27,20 +27,20 @@ GET http://localhost:8080/api/professors/1
 GET http://localhost:8080/api/professors/count
 
 ### 6. 更新教授信息
-PUT http://localhost:8080/api/professors/1
+PUT http://localhost:8080/api/professors/2
 Content-Type: application/json
 
 {
   "name": "张慧敏",
-  "title": "教授",
+  "title": "副教授",
   "university": "贵州财经大学",
   "department": "信息学院",
-  "researchInterests": "数据挖掘、机器学习、人工智能、深度学习",
+  "researchInterests": "数据挖掘",
   "email": "zhanghuimin@gufe.edu.cn",
   "biography": "张慧敏，女，教授，博士生导师。主要研究方向为数据挖掘、机器学习等。"
 }
 
 ### 7. 删除教授（谨慎使用）
- DELETE http://localhost:8080/api/professors/1
+ DELETE http://localhost:8080/api/professors/3
 
 ###

@@ -27,13 +27,31 @@ public class TeachingCourseService {
         return teachingCourseRepository.findByProfessorIdOrderByYearDescSemesterAsc(professorId);
     }
 
+    public List<TeachingCourse> getTeachingCoursesByProfessorId(Long professorId) {
+        return getCoursesByProfessorId(professorId);
+    }
+
+    public Optional<TeachingCourse> getTeachingCourseById(Long id) {
+        return getCourseById(id);
+    }
+
     @Transactional
     public TeachingCourse saveCourse(TeachingCourse course) {
         return teachingCourseRepository.save(course);
     }
 
     @Transactional
+    public TeachingCourse saveTeachingCourse(TeachingCourse course) {
+        return saveCourse(course);
+    }
+
+    @Transactional
     public void deleteCourse(Long id) {
         teachingCourseRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteTeachingCourse(Long id) {
+        deleteCourse(id);
     }
 }
