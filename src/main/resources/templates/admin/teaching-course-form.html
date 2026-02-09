@@ -67,6 +67,7 @@
 
             <form th:action="@{/admin/teaching-courses/save}" th:object="${course}" method="post">
                 <input type="hidden" th:field="*{id}" />
+                <input type="hidden" id="courseIdHidden" th:value="${course.id}" />
 
                 <div class="row">
                     <!-- 所属教授 -->
@@ -147,6 +148,73 @@
                                   rows="4"
                                   placeholder="请输入课程描述"></textarea>
                     </div>
+
+                    <!-- 课程大纲 -->
+                    <div class="col-md-12 mb-4">
+                        <label for="syllabus" class="form-label">
+                            <i class="bi bi-file-earmark-text me-1"></i>
+                            课程大纲（富文本）
+                        </label>
+                        <textarea class="form-control"
+                                  id="syllabus"
+                                  th:field="*{syllabus}"
+                                  placeholder="请输入详细的课程大纲"></textarea>
+                        <div class="form-text">
+                            可以使用富文本编辑器编写课程大纲，支持加粗、列表、链接等格式
+                        </div>
+                    </div>
+
+                    <!-- 课程资料（只在编辑模式显示） -->
+                    <div class="col-md-12 mb-4" th:if="${course.id != null}">
+                        <label class="form-label">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                            课程资料
+                        </label>
+
+                        <!-- 文件上传区域 -->
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <input type="file"
+                                       class="form-control"
+                                       id="materialFile"
+                                       accept=".pdf,.ppt,.pptx,.doc,.docx">
+                                <button type="button"
+                                        class="btn btn-primary"
+                                        id="uploadMaterialBtn"
+                                        onclick="uploadMaterial()">
+                                    <i class="bi bi-upload me-1"></i>上传资料
+                                </button>
+                            </div>
+                            <div class="form-text">支持 PDF、PPT、Word 格式，最大 20MB</div>
+                        </div>
+
+                        <!-- 已上传的资料列表 -->
+                        <div class="card" id="materialsListCard">
+                            <div class="card-header bg-light">
+                                <i class="bi bi-files me-2"></i>
+                                已上传的资料
+                            </div>
+                            <div class="card-body">
+                                <div id="materialsList" class="list-group">
+                                    <!-- 资料列表将通过JavaScript动态渲染 -->
+                                </div>
+                                <div id="noMaterialsMessage" class="text-muted text-center py-3" style="display: none;">
+                                    暂无课程资料
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 隐藏的JSON字段，用于存储资料列表 -->
+                        <input type="hidden" id="materials" th:field="*{materials}">
+                    </div>
+
+                    <!-- 新建模式提示 -->
+                    <div class="col-md-12 mb-4" th:if="${course.id == null}">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>提示：</strong>请先保存课程信息，然后再编辑上传课程资料
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 提交按钮 -->
@@ -182,8 +250,11 @@
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-zh-CN.min.js"></script>
 
     <script>
-        // 初始化富文本编辑器
+        // ============================================
+        // 富文本编辑器初始化
+        // ============================================
         $(document).ready(function() {
+            // 初始化课程描述编辑器
             $('#description').summernote({
                 height: 200,
                 lang: 'zh-CN',
@@ -197,7 +268,255 @@
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ]
             });
+
+            // 初始化课程大纲编辑器
+            $('#syllabus').summernote({
+                height: 300,
+                lang: 'zh-CN',
+                placeholder: '请输入详细的课程大纲，包括课程目标、教学内容、学习要求等...',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+
+            // 加载课程资料列表
+            loadMaterialsList();
         });
+
+        // ============================================
+        // 课程资料管理
+        // ============================================
+
+        /**
+         * 加载课程资料列表
+         */
+        function loadMaterialsList() {
+            const materialsJson = document.getElementById('materials').value;
+
+            if (!materialsJson || materialsJson.trim() === '') {
+                document.getElementById('noMaterialsMessage').style.display = 'block';
+                document.getElementById('materialsList').innerHTML = '';
+                return;
+            }
+
+            try {
+                const materials = JSON.parse(materialsJson);
+
+                if (materials.length === 0) {
+                    document.getElementById('noMaterialsMessage').style.display = 'block';
+                    document.getElementById('materialsList').innerHTML = '';
+                    return;
+                }
+
+                document.getElementById('noMaterialsMessage').style.display = 'none';
+                const listHtml = materials.map((material, index) => {
+                    const sizeInMB = (material.size / 1024 / 1024).toFixed(2);
+                    const fileIcon = getFileIcon(material.name);
+
+                    return `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-${fileIcon} me-2 text-primary"></i>
+                                <a href="${material.url}" target="_blank" class="text-decoration-none">
+                                    ${material.name}
+                                </a>
+                                <span class="text-muted ms-2">(${sizeInMB} MB)</span>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="deleteMaterial(${index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('materialsList').innerHTML = listHtml;
+            } catch (error) {
+                console.error('解析课程资料JSON失败:', error);
+                document.getElementById('noMaterialsMessage').style.display = 'block';
+            }
+        }
+
+        /**
+         * 根据文件名获取图标
+         */
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch (ext) {
+                case 'pdf':
+                    return 'file-earmark-pdf';
+                case 'ppt':
+                case 'pptx':
+                    return 'file-earmark-slides';
+                case 'doc':
+                case 'docx':
+                    return 'file-earmark-word';
+                default:
+                    return 'file-earmark';
+            }
+        }
+
+        /**
+         * 上传课程资料
+         */
+        function uploadMaterial() {
+            const fileInput = document.getElementById('materialFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('请先选择要上传的文件');
+                return;
+            }
+
+            // 验证文件类型
+            const allowedExtensions = ['pdf', 'ppt', 'pptx', 'doc', 'docx'];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(fileExtension)) {
+                alert('只允许上传 PDF、PPT、Word 格式的文件');
+                return;
+            }
+
+            // 验证文件大小（20MB）
+            const maxSize = 20 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('文件大小不能超过20MB');
+                return;
+            }
+
+            // 获取课程ID（从隐藏字段读取）
+            const courseId = document.getElementById('courseIdHidden')?.value;
+
+            // 调试信息
+            console.log('Course ID:', courseId);
+
+            if (!courseId) {
+                alert('课程ID不存在，请先保存课程');
+                return;
+            }
+
+            // 禁用上传按钮
+            const uploadBtn = document.getElementById('uploadMaterialBtn');
+            const originalText = uploadBtn.innerHTML;
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>上传中...';
+
+            // 创建FormData
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 发送上传请求
+            fetch(`/api/upload/material/${courseId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('资料上传成功！');
+
+                    // 更新隐藏的materials字段
+                    const currentMaterials = getMaterialsArray();
+                    currentMaterials.push({
+                        name: file.name,
+                        url: data.fileUrl,
+                        size: file.size
+                    });
+                    document.getElementById('materials').value = JSON.stringify(currentMaterials);
+
+                    // 刷新资料列表
+                    loadMaterialsList();
+
+                    // 清空文件选择
+                    fileInput.value = '';
+                } else {
+                    alert('上传失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('上传错误：', error);
+                alert('上传失败，请检查网络连接');
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = originalText;
+            });
+        }
+
+        /**
+         * 删除课程资料
+         */
+        function deleteMaterial(index) {
+            if (!confirm('确定要删除这个资料吗？')) {
+                return;
+            }
+
+            const materials = getMaterialsArray();
+            const material = materials[index];
+
+            // 获取课程ID（从隐藏字段读取）
+            const courseId = document.getElementById('courseIdHidden')?.value;
+
+            // 调试信息
+            console.log('Course ID:', courseId);
+
+            if (!courseId) {
+                alert('课程ID不存在');
+                return;
+            }
+
+            // 发送删除请求
+            fetch(`/api/upload/material/${courseId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fileUrl: material.url
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('资料删除成功！');
+
+                    // 从数组中删除
+                    materials.splice(index, 1);
+                    document.getElementById('materials').value = JSON.stringify(materials);
+
+                    // 刷新资料列表
+                    loadMaterialsList();
+                } else {
+                    alert('删除失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('删除错误：', error);
+                alert('删除失败，请检查网络连接');
+            });
+        }
+
+        /**
+         * 获取当前的资料数组
+         */
+        function getMaterialsArray() {
+            const materialsJson = document.getElementById('materials').value;
+            if (!materialsJson || materialsJson.trim() === '') {
+                return [];
+            }
+            try {
+                return JSON.parse(materialsJson);
+            } catch (error) {
+                return [];
+            }
+        }
     </script>
 </body>
 </html>

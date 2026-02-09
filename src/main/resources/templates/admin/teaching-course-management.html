@@ -142,9 +142,10 @@
                                     </span>
                                 </div>
                                 <h5 class="mb-2" th:text="${course.courseName}">课程名称</h5>
-                                <p class="mb-1 text-muted small" th:if="${course.description != null}">
+                                <p class="mb-1 text-muted small" th:if="${course.description != null and !T(com.audrey.homepage.util.HtmlUtil).stripHtmlTags(course.description).isEmpty()}">
                                     <i class="bi bi-file-text me-1"></i>
-                                    <strong>描述：</strong><span th:text="${course.description}">课程描述</span>
+                                    <strong>描述：</strong>
+                                    <span th:text="${T(com.audrey.homepage.util.HtmlUtil).getTextSummary(course.description, 150)}">课程描述</span>
                                 </p>
                             </div>
                             <div class="ms-3">

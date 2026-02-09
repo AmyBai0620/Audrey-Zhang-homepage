@@ -164,14 +164,58 @@
                     <div class="col-md-12 mb-3">
                         <label for="wechatQrcode" class="form-label">
                             <i class="bi bi-wechat me-1"></i>
-                            微信二维码URL
+                            微信二维码
                         </label>
-                        <input type="url"
-                               class="form-control"
+
+                        <!-- 只有在编辑模式（contactInfo.id存在）时才显示上传功能 -->
+                        <div th:if="${contactInfo.id != null}">
+                            <!-- 文件选择和上传按钮 -->
+                            <div class="input-group mb-2">
+                                <input type="file"
+                                       class="form-control"
+                                       id="qrcodeFile"
+                                       accept="image/*">
+                                <button type="button"
+                                        class="btn btn-primary"
+                                        id="uploadQrcodeBtn"
+                                        onclick="uploadQrcode()">
+                                    <i class="bi bi-upload me-1"></i>上传
+                                </button>
+                            </div>
+
+                            <!-- 二维码预览区域 -->
+                            <div id="qrcodePreview" class="mb-2" style="display: none;">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <img id="qrcodeImage"
+                                             src=""
+                                             alt="微信二维码"
+                                             class="img-thumbnail"
+                                             style="max-width: 200px; max-height: 200px;">
+                                        <div class="mt-2">
+                                            <button type="button"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="deleteQrcode()">
+                                                <i class="bi bi-trash me-1"></i>删除二维码
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 隐藏的URL输入框（用于存储到数据库） -->
+                        <input type="hidden"
                                id="wechatQrcode"
-                               th:field="*{wechatQrcode}"
-                               placeholder="上传二维码图片后填写URL">
-                        <div class="form-text">请先上传微信二维码图片，然后填写图片URL</div>
+                               th:field="*{wechatQrcode}">
+
+                        <!-- 新建模式提示 -->
+                        <div th:if="${contactInfo.id == null}" class="alert alert-warning">
+                            <i class="bi bi-info-circle me-2"></i>
+                            请先保存联系信息，然后再上传微信二维码
+                        </div>
+
+                        <div class="form-text">支持 JPG、PNG、GIF、WebP 格式，最大 5MB</div>
                     </div>
                 </div>
 
@@ -181,27 +225,60 @@
                     地图定位（可选）
                 </h5>
 
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>提示：</strong>点击"打开地图选择器"按钮，在地图上搜索或点击选择地点，系统会自动填充经纬度和地址信息
+                </div>
+
+                <!-- 地图选择器按钮 -->
+                <div class="mb-3">
+                    <button type="button"
+                            class="btn btn-success btn-lg w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#mapModal">
+                        <i class="bi bi-geo-alt-fill me-2"></i>
+                        打开地图选择器
+                    </button>
+                </div>
+
+                <!-- 地图详细地址（只读显示） -->
+                <div class="mb-3">
+                    <label for="mapAddress" class="form-label">
+                        <i class="bi bi-signpost me-1"></i>
+                        地图地址（自动获取）
+                    </label>
+                    <input type="text"
+                           class="form-control"
+                           id="mapAddress"
+                           th:field="*{mapAddress}"
+                           readonly
+                           placeholder="使用地图选择器后自动填充">
+                    <div class="form-text">从地图API获取的详细地址</div>
+                </div>
+
                 <div class="row">
                     <!-- 纬度 -->
                     <div class="col-md-4 mb-3">
-                        <label for="latitude" class="form-label">纬度</label>
+                        <label for="latitude" class="form-label">纬度（自动获取）</label>
                         <input type="number"
                                class="form-control"
                                id="latitude"
                                th:field="*{latitude}"
                                step="0.00000001"
-                               placeholder="例如：26.456789">
+                               readonly
+                               placeholder="使用地图选择器自动填充">
                     </div>
 
                     <!-- 经度 -->
                     <div class="col-md-4 mb-3">
-                        <label for="longitude" class="form-label">经度</label>
+                        <label for="longitude" class="form-label">经度（自动获取）</label>
                         <input type="number"
                                class="form-control"
                                id="longitude"
                                th:field="*{longitude}"
                                step="0.00000001"
-                               placeholder="例如：106.123456">
+                               readonly
+                               placeholder="使用地图选择器自动填充">
                     </div>
 
                     <!-- 地图缩放级别 -->
@@ -213,14 +290,10 @@
                                th:field="*{mapZoom}"
                                min="1"
                                max="20"
-                               placeholder="15">
-                        <div class="form-text">1-20，推荐15</div>
+                               readonly
+                               placeholder="自动设置">
+                        <div class="form-text">自动设置为15</div>
                     </div>
-                </div>
-
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>提示：</strong>可以使用高德地图或百度地图获取精确的经纬度坐标
                 </div>
 
                 <!-- 提交按钮 -->
@@ -244,6 +317,389 @@
         </div>
     </div>
 
+    <!-- 地图选择器模态框 -->
+    <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="mapModalLabel">
+                        <i class="bi bi-map-fill me-2"></i>
+                        选择地点
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 搜索框 -->
+                    <div class="row mb-3">
+                        <div class="col-md-10">
+                            <input type="text"
+                                   id="mapSearchInput"
+                                   class="form-control form-control-lg"
+                                   placeholder="搜索地点（例如：贵州大学）">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button"
+                                    class="btn btn-primary btn-lg w-100"
+                                    onclick="searchPlace()">
+                                <i class="bi bi-search me-1"></i>搜索
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 当前选择的地址显示 -->
+                    <div class="alert alert-success" id="selectedAddressInfo" style="display: none;">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong>已选择：</strong>
+                        <span id="selectedAddressText"></span>
+                    </div>
+
+                    <!-- 地图容器 -->
+                    <div id="baiduMap" style="height: 500px; border: 2px solid #ddd; border-radius: 8px;"></div>
+
+                    <!-- 使用说明 -->
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>使用说明：</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>在搜索框输入地点名称，点击"搜索"按钮</li>
+                            <li>或者直接在地图上拖动、点击选择位置</li>
+                            <li>选择完成后点击"确认选择"按钮保存</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>取消
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="confirmMapSelection()">
+                        <i class="bi bi-check-circle me-1"></i>确认选择
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入百度地图API -->
+    <!-- 注意：请将 YOUR_BAIDU_MAP_AK 替换为你自己申请的百度地图API密钥 -->
+    <!-- 申请地址：https://lbsyun.baidu.com/apiconsole/key/create -->
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=YOUR_BAIDU_MAP_AK"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        // ============================================
+        // 微信二维码上传功能
+        // ============================================
+
+        // 页面加载时检查是否已有二维码
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrcodeUrl = /*[[${contactInfo.wechatQrcode}]]*/ '';
+            if (qrcodeUrl) {
+                showQrcodePreview(qrcodeUrl);
+            }
+        });
+
+        /**
+         * 上传微信二维码
+         */
+        function uploadQrcode() {
+            const fileInput = document.getElementById('qrcodeFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('请先选择要上传的二维码图片');
+                return;
+            }
+
+            // 验证文件类型
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('只允许上传图片文件（JPG、PNG、GIF、WebP）');
+                return;
+            }
+
+            // 验证文件大小（5MB）
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('文件大小不能超过5MB');
+                return;
+            }
+
+            // 获取联系信息ID
+            const contactInfoId = /*[[${contactInfo.id}]]*/ null;
+            if (!contactInfoId) {
+                alert('联系信息ID不存在，请先保存联系信息');
+                return;
+            }
+
+            // 禁用上传按钮，防止重复点击
+            const uploadBtn = document.getElementById('uploadQrcodeBtn');
+            const originalText = uploadBtn.innerHTML;
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>上传中...';
+
+            // 创建 FormData 对象
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 发送上传请求
+            fetch(`/api/upload/qrcode/${contactInfoId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 上传成功
+                    alert('二维码上传成功！');
+
+                    // 更新隐藏的URL输入框
+                    document.getElementById('wechatQrcode').value = data.qrcodeUrl;
+
+                    // 显示预览
+                    showQrcodePreview(data.qrcodeUrl);
+
+                    // 清空文件选择
+                    fileInput.value = '';
+                } else {
+                    // 上传失败
+                    alert('上传失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('上传错误：', error);
+                alert('上传失败，请检查网络连接');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = originalText;
+            });
+        }
+
+        /**
+         * 显示二维码预览
+         */
+        function showQrcodePreview(qrcodeUrl) {
+            const previewDiv = document.getElementById('qrcodePreview');
+            const previewImg = document.getElementById('qrcodeImage');
+
+            previewImg.src = qrcodeUrl;
+            previewDiv.style.display = 'block';
+        }
+
+        /**
+         * 删除微信二维码
+         */
+        function deleteQrcode() {
+            if (!confirm('确定要删除微信二维码吗？')) {
+                return;
+            }
+
+            // 获取联系信息ID
+            const contactInfoId = /*[[${contactInfo.id}]]*/ null;
+            if (!contactInfoId) {
+                alert('联系信息ID不存在');
+                return;
+            }
+
+            // 发送删除请求
+            fetch(`/api/upload/qrcode/${contactInfoId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 删除成功
+                    alert('二维码删除成功！');
+
+                    // 清空隐藏的URL输入框
+                    document.getElementById('wechatQrcode').value = '';
+
+                    // 隐藏预览
+                    document.getElementById('qrcodePreview').style.display = 'none';
+                } else {
+                    // 删除失败
+                    alert('删除失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('删除错误：', error);
+                alert('删除失败，请检查网络连接');
+            });
+        }
+
+        // ============================================
+        // 百度地图选择器功能
+        // ============================================
+
+        let map = null;  // 地图对象
+        let marker = null;  // 标记点
+        let geocoder = null;  // 地理编码服务
+        let localSearch = null;  // 地点搜索服务
+        let selectedLocation = null;  // 当前选择的位置信息
+
+        /**
+         * 初始化百度地图（在模态框打开时调用）
+         */
+        document.getElementById('mapModal').addEventListener('shown.bs.modal', function () {
+            // 如果地图已经初始化，不重复初始化
+            if (map) {
+                return;
+            }
+
+            // 获取当前表单中的坐标（如果有）
+            const currentLat = parseFloat(document.getElementById('latitude').value);
+            const currentLng = parseFloat(document.getElementById('longitude').value);
+
+            // 如果有坐标，使用当前坐标；否则使用默认位置（贵阳市中心）
+            const initLat = currentLat || 26.647661;
+            const initLng = currentLng || 106.630153;
+            const initZoom = 15;
+
+            // 创建地图实例
+            map = new BMap.Map("baiduMap");
+            const point = new BMap.Point(initLng, initLat);
+            map.centerAndZoom(point, initZoom);
+
+            // 启用滚轮缩放
+            map.enableScrollWheelZoom(true);
+
+            // 添加地图控件
+            map.addControl(new BMap.NavigationControl());  // 平移缩放控件
+            map.addControl(new BMap.ScaleControl());  // 比例尺控件
+            map.addControl(new BMap.OverviewMapControl());  // 缩略图控件
+
+            // 初始化地理编码服务
+            geocoder = new BMap.Geocoder();
+
+            // 初始化地点搜索服务
+            const searchOptions = {
+                onSearchComplete: function(results) {
+                    if (localSearch.getStatus() === BMAP_STATUS_SUCCESS) {
+                        // 获取第一个结果
+                        const firstResult = results.getPoi(0);
+                        const point = firstResult.point;
+
+                        // 设置地图中心和标记
+                        map.centerAndZoom(point, 16);
+                        setMarker(point);
+
+                        // 反向地理编码获取详细地址
+                        getAddress(point);
+                    } else {
+                        alert('未找到该地点，请尝试其他关键词');
+                    }
+                }
+            };
+            localSearch = new BMap.LocalSearch(map, searchOptions);
+
+            // 如果当前有坐标，显示标记
+            if (currentLat && currentLng) {
+                const currentPoint = new BMap.Point(currentLng, currentLat);
+                setMarker(currentPoint);
+                getAddress(currentPoint);
+            }
+
+            // 监听地图点击事件
+            map.addEventListener("click", function(e) {
+                const clickPoint = e.point;
+                setMarker(clickPoint);
+                getAddress(clickPoint);
+            });
+        });
+
+        /**
+         * 搜索地点
+         */
+        function searchPlace() {
+            const keyword = document.getElementById('mapSearchInput').value.trim();
+
+            if (!keyword) {
+                alert('请输入要搜索的地点');
+                return;
+            }
+
+            if (!localSearch) {
+                alert('地图未初始化，请稍后重试');
+                return;
+            }
+
+            // 执行搜索
+            localSearch.search(keyword);
+        }
+
+        /**
+         * 在地图上设置标记点
+         */
+        function setMarker(point) {
+            // 移除旧标记
+            if (marker) {
+                map.removeOverlay(marker);
+            }
+
+            // 创建新标记
+            marker = new BMap.Marker(point);
+            map.addOverlay(marker);
+
+            // 添加标记动画
+            marker.setAnimation(BMAP_ANIMATION_BOUNCE);
+            setTimeout(() => {
+                marker.setAnimation(null);
+            }, 1000);
+        }
+
+        /**
+         * 根据坐标获取详细地址（反向地理编码）
+         */
+        function getAddress(point) {
+            geocoder.getLocation(point, function(result) {
+                if (result) {
+                    const address = result.address;
+                    const zoom = map.getZoom();
+
+                    // 保存选择的位置信息
+                    selectedLocation = {
+                        longitude: point.lng,
+                        latitude: point.lat,
+                        address: address,
+                        zoom: zoom
+                    };
+
+                    // 显示选择的地址
+                    document.getElementById('selectedAddressText').textContent = address;
+                    document.getElementById('selectedAddressInfo').style.display = 'block';
+                } else {
+                    alert('无法获取该位置的地址信息');
+                }
+            });
+        }
+
+        /**
+         * 确认地图选择
+         */
+        function confirmMapSelection() {
+            if (!selectedLocation) {
+                alert('请先在地图上选择一个位置');
+                return;
+            }
+
+            // 填充表单字段
+            document.getElementById('latitude').value = selectedLocation.latitude.toFixed(8);
+            document.getElementById('longitude').value = selectedLocation.longitude.toFixed(8);
+            document.getElementById('mapZoom').value = selectedLocation.zoom;
+            document.getElementById('mapAddress').value = selectedLocation.address;
+
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('mapModal'));
+            modal.hide();
+
+            // 显示成功提示
+            alert('地图位置已选择！\n' +
+                  '地址：' + selectedLocation.address + '\n' +
+                  '经度：' + selectedLocation.longitude.toFixed(6) + '\n' +
+                  '纬度：' + selectedLocation.latitude.toFixed(6));
+        }
+    </script>
 </body>
 </html>

@@ -142,9 +142,10 @@
                                     </span>
                                 </div>
                                 <h5 class="mb-2" th:text="${project.title}">项目标题</h5>
-                                <p class="mb-1 text-muted small" th:if="${project.description != null}">
+                                <p class="mb-1 text-muted small" th:if="${project.description != null and !T(com.audrey.homepage.util.HtmlUtil).stripHtmlTags(project.description).isEmpty()}">
                                     <i class="bi bi-file-text me-1"></i>
-                                    <strong>描述：</strong><span th:text="${project.description}">项目描述</span>
+                                    <strong>描述：</strong>
+                                    <span th:text="${T(com.audrey.homepage.util.HtmlUtil).getTextSummary(project.description, 150)}">项目描述</span>
                                 </p>
                                 <p class="mb-1 text-muted small" th:if="${project.fundingSource != null}">
                                     <i class="bi bi-bank me-1"></i>

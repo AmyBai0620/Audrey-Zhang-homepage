@@ -72,15 +72,21 @@ public class ContactInfo {
     private String orcidUrl;
 
     /**
+     * 地图详细地址（从地图API获取）
+     */
+    @Column(length = 500)
+    private String mapAddress;
+
+    /**
      * 纬度（用于地图定位）
      */
-    @Column(precision = 10, scale = 8)
+    @Column
     private Double latitude;
 
     /**
      * 经度（用于地图定位）
      */
-    @Column(precision = 11, scale = 8)
+    @Column
     private Double longitude;
 
     /**

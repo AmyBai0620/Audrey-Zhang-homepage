@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论文搜索 - Academic Homepage</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar a {
+            color: white !important;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .search-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .search-input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .result-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .publication-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .publication-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .publication-card::after {
+            content: '\F285';
+            font-family: 'bootstrap-icons';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #667eea;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .publication-card:hover::after {
+            opacity: 1;
+        }
+
+        .publication-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            padding-right: 40px;
+        }
+
+        .publication-title a {
+            color: #667eea;
+            text-decoration: none;
+            display: block;
+        }
+
+        .publication-title a:hover {
+            text-decoration: underline;
+            color: #764ba2;
+        }
+
+        .publication-meta {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .publication-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .type-journal {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .type-conference {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .type-book {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .type-chapter {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            font-weight: 600;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .no-results i {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/">
+                <i class="bi bi-house-fill me-2"></i>返回首页
+            </a>
+        </div>
+    </nav>
+
+    <div class="search-container">
+        <!-- 搜索框 -->
+        <div class="search-box">
+            <form action="/publications/search" method="get">
+                <!-- 关键词搜索 -->
+                <div class="search-input-group">
+                    <input type="text"
+                           name="keyword"
+                           class="search-input"
+                           th:value="${keyword}"
+                           placeholder="搜索论文标题、作者、期刊...">
+                    <button type="submit" class="search-btn">
+                        <i class="bi bi-search me-1"></i>搜索
+                    </button>
+                </div>
+
+                <!-- 筛选器 -->
+                <div class="filters">
+                    <span style="color: #666; font-weight: 500;">筛选：</span>
+
+                    <!-- 年份筛选 -->
+                    <select name="year" class="filter-select" onchange="this.form.submit()">
+                        <option value="">所有年份</option>
+                        <option th:each="y : ${allYears}"
+                                th:value="${y}"
+                                th:text="${y}"
+                                th:selected="${y == selectedYear}">
+                        </option>
+                    </select>
+
+                    <!-- 类型筛选 -->
+                    <select name="type" class="filter-select" onchange="this.form.submit()">
+                        <option value="">所有类型</option>
+                        <option value="JOURNAL"
+                                th:selected="${selectedType == 'JOURNAL'}">期刊论文</option>
+                        <option value="CONFERENCE"
+                                th:selected="${selectedType == 'CONFERENCE'}">会议论文</option>
+                        <option value="BOOK"
+                                th:selected="${selectedType == 'BOOK'}">书籍</option>
+                        <option value="BOOK_CHAPTER"
+                                th:selected="${selectedType == 'BOOK_CHAPTER'}">书籍章节</option>
+                    </select>
+
+                    <!-- 清除筛选 -->
+                    <a href="/publications/search" class="btn btn-sm btn-outline-secondary" style="border-radius: 20px;">
+                        <i class="bi bi-x-circle me-1"></i>清除筛选
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 搜索结果信息 -->
+        <div class="result-info" th:if="${totalItems > 0}">
+            <div>
+                <i class="bi bi-check-circle text-success me-2"></i>
+                找到 <strong th:text="${totalItems}">0</strong> 篇论文
+                <span th:if="${keyword != null and keyword != ''}" style="color: #666;">
+                    包含关键词 "<strong th:text="${keyword}"></strong>"
+                </span>
+                <span style="color: #999; font-size: 13px; margin-left: 10px;">
+                    <i class="bi bi-info-circle"></i> 点击论文卡片查看详情
+                </span>
+            </div>
+            <div style="color: #999; font-size: 14px;">
+                第 <span th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span> 页
+            </div>
+        </div>
+
+        <!-- 搜索结果列表 -->
+        <div th:if="${totalItems > 0}">
+            <div th:each="pub : ${publications}"
+                 class="publication-card"
+                 th:onclick="'window.location.href=\'/publication/' + ${pub.id} + '\''">
+
+                <!-- 论文标题 -->
+                <div class="publication-title">
+                    <a th:href="@{/publication/{id}(id=${pub.id})}"
+                       th:utext="${@searchHighlight.highlight(pub.title, keyword)}"
+                       onclick="event.stopPropagation()">
+                        论文标题
+                    </a>
+                </div>
+
+                <!-- 作者和期刊 -->
+                <div class="publication-meta">
+                    <i class="bi bi-people-fill me-1"></i>
+                    <span th:utext="${@searchHighlight.highlight(pub.authors, keyword)}">作者</span>
+                </div>
+
+                <div class="publication-meta" th:if="${pub.journal}">
+                    <i class="bi bi-journal-text me-1"></i>
+                    <span th:utext="${@searchHighlight.highlight(pub.journal, keyword)}">期刊</span>
+                </div>
+
+                <!-- 年份和类型 -->
+                <div class="publication-meta">
+                    <span th:if="${pub.year}">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        <span th:text="${pub.year}">2024</span>
+                    </span>
+
+                    <span th:if="${pub.publicationType}" class="ms-3">
+                        <span th:class="${'publication-type type-' + #strings.toLowerCase(pub.publicationType.name())}"
+                              th:text="${#strings.replace(pub.publicationType.name(), '_', ' ')}">
+                            类型
+                        </span>
+                    </span>
+
+                    <span th:if="${pub.pdfUrl}" class="ms-3">
+                        <a th:href="${pub.pdfUrl}"
+                           target="_blank"
+                           style="color: #dc3545; text-decoration: none;"
+                           onclick="event.stopPropagation()">
+                            <i class="bi bi-file-pdf-fill me-1"></i>PDF
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 无结果提示 -->
+        <div class="no-results" th:if="${totalItems == 0}">
+            <i class="bi bi-search text-muted"></i>
+            <h4 class="mt-3">未找到匹配的论文</h4>
+            <p>请尝试：</p>
+            <ul style="list-style: none; padding: 0;">
+                <li>使用不同的关键词</li>
+                <li>减少筛选条件</li>
+                <li>检查拼写是否正确</li>
+            </ul>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination-container" th:if="${totalPages > 1}">
+            <nav>
+                <ul class="pagination">
+                    <!-- 上一页 -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/publications/search(keyword=${keyword}, year=${selectedYear}, type=${selectedType}, page=${currentPage - 1})}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <!-- 页码 -->
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:if="${i >= (currentPage - 2) and i <= (currentPage + 2)}"
+                        class="page-item"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/publications/search(keyword=${keyword}, year=${selectedYear}, type=${selectedType}, page=${i})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+
+                    <!-- 下一页 -->
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/publications/search(keyword=${keyword}, year=${selectedYear}, type=${selectedType}, page=${currentPage + 1})}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

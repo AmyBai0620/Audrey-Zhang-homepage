@@ -1,11 +1,15 @@
 package com.audrey.homepage.controller;
 
+import com.audrey.homepage.entity.Publication;
+import com.audrey.homepage.entity.Publication.PublicationType;
 import com.audrey.homepage.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 页面控制器
@@ -121,6 +125,56 @@ public class HomeController {
                     return "award-detail";  // 返回 templates/award-detail.html
                 })
                 .orElse("error");
+    }
+
+    /**
+     * 论文搜索页面
+     * 访问 http://localhost:8080/publications/search
+     *
+     * @param keyword 搜索关键词（可选）
+     * @param year 年份筛选（可选）
+     * @param type 类型筛选（可选）
+     * @param page 页码（默认0）
+     * @param size 每页数量（默认20）
+     */
+    @GetMapping("/publications/search")
+    public String searchPublications(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "type", required = false) String typeStr,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            Model model) {
+
+        // 转换类型字符串为枚举
+        PublicationType type = null;
+        if (typeStr != null && !typeStr.isEmpty()) {
+            try {
+                type = PublicationType.valueOf(typeStr);
+            } catch (IllegalArgumentException e) {
+                // 忽略无效的类型参数
+            }
+        }
+
+        // 执行搜索
+        Page<Publication> publicationsPage = publicationService.searchPublications(keyword, year, type, page, size);
+
+        // 传递数据到视图
+        model.addAttribute("publications", publicationsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", publicationsPage.getTotalPages());
+        model.addAttribute("totalItems", publicationsPage.getTotalElements());
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute("selectedYear", year);
+        model.addAttribute("selectedType", typeStr);
+
+        // 传递所有年份列表（用于筛选下拉框）
+        model.addAttribute("allYears", publicationService.getAllYears());
+
+        // 传递所有类型列表
+        model.addAttribute("allTypes", PublicationType.values());
+
+        return "publication-search";  // 返回 templates/publication-search.html
     }
 
 }

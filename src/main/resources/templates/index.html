@@ -245,6 +245,70 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
             color: white;
         }
+
+        /* 搜索框样式 */
+        .search-box-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .search-box-container h3 {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .publication-search-form {
+            display: flex;
+            gap: 10px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .publication-search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .publication-search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .publication-search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .publication-search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .publication-search-form {
+                flex-direction: column;
+            }
+
+            .publication-search-btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -258,6 +322,20 @@
         <div class="header-card">
             <h1><i class="bi bi-mortarboard-fill me-2"></i>学术主页</h1>
             <p class="subtitle">Academic Homepage</p>
+        </div>
+
+        <!-- 论文搜索框 -->
+        <div class="search-box-container">
+            <h3><i class="bi bi-search me-2"></i>搜索论文</h3>
+            <form action="/publications/search" method="get" class="publication-search-form">
+                <input type="text"
+                       name="keyword"
+                       class="publication-search-input"
+                       placeholder="搜索论文标题、作者、期刊...">
+                <button type="submit" class="publication-search-btn">
+                    <i class="bi bi-search me-1"></i>搜索
+                </button>
+            </form>
         </div>
 
         <!-- 教授列表 -->

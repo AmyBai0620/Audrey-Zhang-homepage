@@ -5,7 +5,12 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git config:*)",
-      "Bash(mvn clean compile:*)"
+      "Bash(mvn clean compile:*)",
+      "Bash(psql:*)",
+      "Bash(mvn spring-boot:run:*)",
+      "Bash(grep:*)",
+      "Bash(git rm:*)",
+      "Bash(where /R \"C:\\\\Program Files\" psql.exe)"
     ]
   }
 }

@@ -50,6 +50,19 @@ public class TeachingCourse {
     private String description;
 
     /**
+     * 课程大纲（富文本内容）
+     */
+    @Column(columnDefinition = "TEXT")
+    private String syllabus;
+
+    /**
+     * 课程资料（JSON格式存储文件列表）
+     * 格式示例：[{"name":"lecture1.pdf","url":"/uploads/materials/xxx.pdf","size":1024000}]
+     */
+    @Column(columnDefinition = "TEXT")
+    private String materials;
+
+    /**
      * 学分
      */
     @Column

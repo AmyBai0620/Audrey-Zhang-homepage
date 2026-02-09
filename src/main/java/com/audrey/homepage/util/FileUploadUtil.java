@@ -89,6 +89,24 @@ public class FileUploadUtil {
     }
 
     /**
+     * 保存课程资料文件（PDF、PPT、Word）
+     *
+     * @param file 上传的文件
+     * @param uploadDir 上传目录（如：uploads/materials）
+     * @param prefix 文件名前缀（如：course_1）
+     * @return 保存后的文件相对路径
+     * @throws IOException 文件操作异常
+     * @throws IllegalArgumentException 文件验证失败
+     */
+    public static String saveMaterialFile(MultipartFile file, String uploadDir, String prefix) throws IOException {
+        // 1. 验证文件（资料文件大小限制20MB）
+        validateMaterialFile(file);
+
+        // 2. 保存文件
+        return saveFileInternal(file, uploadDir, prefix);
+    }
+
+    /**
      * 内部方法：保存文件的通用逻辑
      */
     private static String saveFileInternal(MultipartFile file, String uploadDir, String prefix) throws IOException {
@@ -156,6 +174,41 @@ public class FileUploadUtil {
         String contentType = file.getContentType();
         if (contentType == null || !contentType.equals(ALLOWED_PDF_TYPE)) {
             throw new IllegalArgumentException("只允许上传PDF格式的文件");
+        }
+    }
+
+    /**
+     * 验证课程资料文件（PDF、PPT、Word）
+     *
+     * @param file 上传的文件
+     * @throws IllegalArgumentException 验证失败时抛出异常
+     */
+    private static void validateMaterialFile(MultipartFile file) {
+        // 检查文件是否为空
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("文件不能为空");
+        }
+
+        // 检查文件大小（20MB）
+        if (file.getSize() > MAX_PDF_SIZE) {
+            throw new IllegalArgumentException("文件大小不能超过20MB");
+        }
+
+        // 检查文件类型
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            throw new IllegalArgumentException("无法识别文件类型");
+        }
+
+        // 允许的MIME类型
+        boolean isAllowed = contentType.equals("application/pdf")
+                || contentType.equals("application/vnd.ms-powerpoint")  // .ppt
+                || contentType.equals("application/vnd.openxmlformats-officedocument.presentationml.presentation")  // .pptx
+                || contentType.equals("application/msword")  // .doc
+                || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document");  // .docx
+
+        if (!isAllowed) {
+            throw new IllegalArgumentException("只允许上传PDF、PPT、Word格式的文件");
         }
     }
 

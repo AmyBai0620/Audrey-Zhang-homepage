@@ -4,6 +4,9 @@ import com.audrey.homepage.entity.Publication;
 import com.audrey.homepage.entity.Publication.PublicationType;
 import com.audrey.homepage.repository.PublicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,5 +86,27 @@ public class PublicationService {
     @Transactional
     public void deletePublication(Long id) {
         publicationRepository.deleteById(id);
+    }
+
+    /**
+     * 搜索论文（支持关键词、年份、类型筛选，支持分页）
+     *
+     * @param keyword 关键词（搜索标题、作者、期刊）
+     * @param year 年份（可选）
+     * @param type 类型（可选）
+     * @param page 页码（从0开始）
+     * @param size 每页数量
+     * @return 分页的论文列表
+     */
+    public Page<Publication> searchPublications(String keyword, Integer year, PublicationType type, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return publicationRepository.searchPublications(keyword, year, type, pageable);
+    }
+
+    /**
+     * 获取所有年份列表（用于筛选器）
+     */
+    public List<Integer> getAllYears() {
+        return publicationRepository.findAllDistinctYears();
     }
 }
